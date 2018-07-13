@@ -34,6 +34,18 @@ enum InstType {
     case CP
     case RST
     
+    case RLC
+    case RRC
+    case RL
+    case RR
+    case SLA
+    case SRA
+    case SWAP
+    case SRL
+    case BIT
+    case RES
+    case SET
+    
     case PREFIX
     
     case RET
@@ -53,6 +65,7 @@ enum InstType {
     case STOP
     case HALT
     
+    case UNIMPLEMENTED
 }
 
 indirect enum Argument {
@@ -66,9 +79,11 @@ indirect enum Argument {
     case BC
     case DE
     case HL
+    case AF
     case HLi
     case HLd
     case SP
+    case SPr8
     case Mem(Argument)
     case Immed8
     case Immed16
@@ -77,5 +92,7 @@ indirect enum Argument {
     case Z_flag
     case NC_flag
     case C_flag
+    
+    case Number(UInt8)
 }
 

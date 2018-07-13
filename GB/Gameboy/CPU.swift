@@ -16,12 +16,7 @@ class CPU {
     
     static var registers = Registers()
     
-    struct Flags {
-        static var zero: Bool = false
-        static var subtract: Bool = false
-        static var halfCarry: Bool = false
-        static var carry: Bool = false
-    }
+    
     
     static var mmu: MMU = MMU.mmu
     
@@ -136,9 +131,451 @@ class CPU {
         I(  .LD8,    .E,    .L), // 0x5D -> LD B, L
         I(  .LD8,    .E,    .Mem(.HL)), // 0x5E -> LD B, (HL)
         I(  .LD8,    .E,    .A), // 0x5F -> LD B, A
+        
+        I(  .LD8,    .H,    .B), // 0x50 -> LD B, B
+        I(  .LD8,    .H,    .C), // 0x51 -> LD B, C
+        I(  .LD8,    .H,    .D), // 0x52 -> LD B, D
+        I(  .LD8,    .H,    .E), // 0x53 -> LD B, E
+        I(  .LD8,    .H,    .H), // 0x54 -> LD B, H
+        I(  .LD8,    .H,    .L), // 0x55 -> LD B, L
+        I(  .LD8,    .H,    .Mem(.HL)), // 0x56 -> LD B, (HL)
+        I(  .LD8,    .H,    .A), // 0x57 -> LD B, A
+        I(  .LD8,    .L,    .B), // 0x58 -> LD C, B
+        I(  .LD8,    .L,    .C), // 0x59 -> LD C, C
+        I(  .LD8,    .L,    .D), // 0x5A -> LD C, D
+        I(  .LD8,    .L,    .E), // 0x5B -> LD C, E
+        I(  .LD8,    .L,    .H), // 0x5C -> LD C, H
+        I(  .LD8,    .L,    .L), // 0x5D -> LD B, L
+        I(  .LD8,    .L,    .Mem(.HL)), // 0x5E -> LD B, (HL)
+        I(  .LD8,    .L,    .A), // 0x5F -> LD B, A
+        
+        I(  .LD8,    .Mem(.HL),    .B), // 0x50 -> LD B, B
+        I(  .LD8,    .Mem(.HL),    .C), // 0x51 -> LD B, C
+        I(  .LD8,    .Mem(.HL),    .D), // 0x52 -> LD B, D
+        I(  .LD8,    .Mem(.HL),    .E), // 0x53 -> LD B, E
+        I(  .LD8,    .Mem(.HL),    .H), // 0x54 -> LD B, H
+        I(  .LD8,    .Mem(.HL),    .L), // 0x55 -> LD B, L
+        I(  .HALT), // 0x56 -> LD B, (HL)
+        I(  .LD8,    .Mem(.HL),    .A), // 0x57 -> LD B, A
+        I(  .LD8,    .A,    .B), // 0x58 -> LD C, B
+        I(  .LD8,    .A,    .C), // 0x59 -> LD C, C
+        I(  .LD8,    .A,    .D), // 0x5A -> LD C, D
+        I(  .LD8,    .A,    .E), // 0x5B -> LD C, E
+        I(  .LD8,    .A,    .H), // 0x5C -> LD C, H
+        I(  .LD8,    .A,    .L), // 0x5D -> LD B, L
+        I(  .LD8,    .A,    .Mem(.HL)), // 0x5E -> LD B, (HL)
+        I(  .LD8,    .A,    .A), // 0x5F -> LD B, A
+        
+        I(  .ADD8,    .A,    .B), // 0x80
+        I(  .ADD8,    .A,    .C), // 0x81
+        I(  .ADD8,    .A,    .D), // 0x82
+        I(  .ADD8,    .A,    .E), // 0x83
+        I(  .ADD8,    .A,    .H), // 0x84
+        I(  .ADD8,    .A,    .L), // 0x85
+        I(  .ADD8,    .A,    .Mem(.HL)), // 0x86
+        I(  .ADD8,    .A,    .A), // 0x87
+        I(  .ADC,    .A,    .B), // 0x88
+        I(  .ADC,    .A,    .C), // 0x89
+        I(  .ADC,    .A,    .D), // 0x8A
+        I(  .ADC,    .A,    .E), // 0x8B
+        I(  .ADC,    .A,    .H), // 0x8C
+        I(  .ADC,    .A,    .L), // 0x8D
+        I(  .ADC,    .A,    .Mem(.HL)), // 0x8E
+        I(  .ADC,    .A,    .A), // 0x8F
+        
+        I(  .SUB,    .B), // 0x90
+        I(  .SUB,    .C), // 0x91
+        I(  .SUB,    .D), // 0x92
+        I(  .SUB,    .E), // 0x93
+        I(  .SUB,    .H), // 0x94
+        I(  .SUB,    .L), // 0x95
+        I(  .SUB,    .Mem(.HL)), // 0x96
+        I(  .SUB,    .A), // 0x97
+        I(  .SBC,    .A,    .B), // 0x98
+        I(  .SBC,    .A,    .C), // 0x99
+        I(  .SBC,    .A,    .D), // 0x9A
+        I(  .SBC,    .A,    .E), // 0x9B
+        I(  .SBC,    .A,    .H), // 0x9C
+        I(  .SBC,    .A,    .L), // 0x9D
+        I(  .SBC,    .A,    .Mem(.HL)), // 0x9E
+        I(  .SBC,    .A,    .A), // 0x9F
+        
+        I(  .AND,    .B), // 0xA0
+        I(  .AND,    .C), // 0xA1
+        I(  .AND,    .D), // 0xA2
+        I(  .AND,    .E), // 0xA3
+        I(  .AND,    .H), // 0xA4
+        I(  .AND,    .L), // 0xA5
+        I(  .AND,    .Mem(.HL)), // 0xA6
+        I(  .AND,    .A), // 0xA7
+        I(  .XOR,    .B), // 0xA8
+        I(  .XOR,    .C), // 0xA9
+        I(  .XOR,    .D), // 0xAA
+        I(  .XOR,    .E), // 0xAB
+        I(  .XOR,    .H), // 0xAC
+        I(  .XOR,    .L), // 0xAD
+        I(  .XOR,    .Mem(.HL)), // 0xAE
+        I(  .XOR,    .A), // 0xAF
+        
+        I(  .OR,    .B), // 0xB0
+        I(  .OR,    .C), // 0xB1
+        I(  .OR,    .D), // 0xB2
+        I(  .OR,    .E), // 0xB3
+        I(  .OR,    .H), // 0xB4
+        I(  .OR,    .L), // 0xB5
+        I(  .OR,    .Mem(.HL)), // 0xB6
+        I(  .OR,    .A), // 0xB7
+        I(  .CP,    .B), // 0xB8
+        I(  .CP,    .C), // 0xB9
+        I(  .CP,    .D), // 0xBA
+        I(  .CP,    .E), // 0xBB
+        I(  .CP,    .H), // 0xBC
+        I(  .CP,    .L), // 0xBD
+        I(  .CP,    .Mem(.HL)), // 0xBE
+        I(  .CP,    .A), // 0xBF
+        
+        I(  .RET,    .NZ_flag), // 0xC0
+        I(  .POP,    .BC), // 0xC1
+        I(  .JP,    .NZ_flag,    .Immed16), // 0xC2
+        I(  .JP,    .Immed16), // 0xC3
+        I(  .CALL,    .NZ_flag,    .Immed16), // 0xC4
+        I(  .PUSH,    .BC), // 0xC5
+        I(  .ADD8,    .A,    .Immed8), // 0xC6
+        I(  .RST,    .Number(0x00)), // 0xC7
+        I(  .RET,    .Z_flag), // 0xC8
+        I(  .RET), // 0xC9
+        I(  .JP,    .Z_flag,    .Immed16), // 0xCA
+        I(  .PREFIX), // 0xCB
+        I(  .CALL,    .Z_flag,    .Immed16), // 0xCC
+        I(  .CALL,    .Immed16), // 0xCD
+        I(  .ADC,    .A,    .Immed8), // 0xCE
+        I(  .RST,    .Number(0x08)), // 0xCF
+        
+        I(  .RET,    .NC_flag), // 0xD0
+        I(  .POP,    .DE), // 0xD1
+        I(  .JP,    .NC_flag,    .Immed16), // 0xD2
+        I(  .UNIMPLEMENTED), // 0xD3
+        I(  .CALL,    .NC_flag,    .Immed16), // 0xD4
+        I(  .PUSH,    .DE), // 0xD5
+        I(  .SUB,    .Immed8), // 0xD6
+        I(  .RST,    .Number(0x10)), // 0xD7
+        I(  .RET,    .C_flag), // 0xD8
+        I(  .RETI), // 0xD9
+        I(  .JP,    .C_flag,    .Immed16), // 0xDA
+        I(  .UNIMPLEMENTED), // 0xDB
+        I(  .CALL,    .C_flag,    .Immed16), // 0xDC
+        I(  .UNIMPLEMENTED), // 0xDD
+        I(  .SBC,    .A,    .Immed8), // 0xDE
+        I(  .RST,    .Number(0x18)), // 0xDF
+        
+        I(  .LDH,    .Mem(.Immed8), .A), // 0xC0
+        I(  .POP,    .HL), // 0x<#code#>
+        I(  .LD8,    .Mem(.C),    .A), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .PUSH,    .HL), // 0x<#code#>
+        I(  .AND,    .Immed8), // 0x<#code#>
+        I(  .RST,    .Number(0x20)), // 0x<#code#>
+        I(  .ADD8,    .SP,    .Immed8), // 0x<#code#>
+        I(  .JP, .Mem(.HL)), // 0x<#code#>
+        I(  .LD8,    .Mem(.Immed16),    .A), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .XOR,    .Immed8), // 0x<#code#>
+        I(  .RST,    .Number(0x28)), // 0x<#code#>
+        
+        I(  .LDH,    .A, .Mem(.Immed8)), // 0xC0
+        I(  .POP,    .AF), // 0x<#code#>
+        I(  .LD8,    .A,    .Mem(.C)), // 0x<#code#>
+        I(  .DI), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .PUSH,    .AF), // 0x<#code#>
+        I(  .OR,    .Immed8), // 0x<#code#>
+        I(  .RST,    .Number(0x30)), // 0x<#code#>
+        I(  .LD16,    .HL,    .SPr8), // 0x<#code#>
+        I(  .LD16, .SP, .HL), // 0x<#code#>
+        I(  .LD8,    .A,    .Mem(.Immed16)), // 0x<#code#>
+        I(  .EI), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .UNIMPLEMENTED), // 0x<#code#>
+        I(  .CP,    .Immed8), // 0x<#code#>
+        I(  .RST,    .Number(0x38)), // 0x<#code#>
     ]
     
-    
+    static let secondaryTable: Array<()->()> = [
+        I(  .RLC,    .B), // 0x<#code#>
+        I(  .RLC,    .C), // 0x<#code#>
+        I(  .RLC,    .D), // 0x<#code#>
+        I(  .RLC,    .E), // 0x<#code#>
+        I(  .RLC,    .H), // 0x<#code#>
+        I(  .RLC,    .L), // 0x<#code#>
+        I(  .RLC,    .Mem(.HL)), // 0x<#code#>
+        I(  .RLC,    .A), // 0x<#code#>
+        I(  .RRC,    .B), // 0x<#code#>
+        I(  .RRC,    .C), // 0x<#code#>
+        I(  .RRC,    .D), // 0x<#code#>
+        I(  .RRC,    .E), // 0x<#code#>
+        I(  .RRC,    .H), // 0x<#code#>
+        I(  .RRC,    .L), // 0x<#code#>
+        I(  .RRC,    .Mem(.HL)), // 0x<#code#>
+        I(  .RRC,    .A), // 0x<#code#>
+        
+        I(  .RL,    .B), // 0x<#code#>
+        I(  .RL,    .C), // 0x<#code#>
+        I(  .RL,    .D), // 0x<#code#>
+        I(  .RL,    .E), // 0x<#code#>
+        I(  .RL,    .H), // 0x<#code#>
+        I(  .RL,    .L), // 0x<#code#>
+        I(  .RL,    .Mem(.HL)), // 0x<#code#>
+        I(  .RL,    .A), // 0x<#code#>
+        I(  .RR,    .B), // 0x<#code#>
+        I(  .RR,    .C), // 0x<#code#>
+        I(  .RR,    .D), // 0x<#code#>
+        I(  .RR,    .E), // 0x<#code#>
+        I(  .RR,    .H), // 0x<#code#>
+        I(  .RR,    .L), // 0x<#code#>
+        I(  .RR,    .Mem(.HL)), // 0x<#code#>
+        I(  .RR,    .A), // 0x<#code#>
+        
+        I(  .SLA,    .B), // 0x<#code#>
+        I(  .SLA,    .C), // 0x<#code#>
+        I(  .SLA,    .D), // 0x<#code#>
+        I(  .SLA,    .E), // 0x<#code#>
+        I(  .SLA,    .H), // 0x<#code#>
+        I(  .SLA,    .L), // 0x<#code#>
+        I(  .SLA,    .Mem(.HL)), // 0x<#code#>
+        I(  .SLA,    .A), // 0x<#code#>
+        I(  .SRA,    .B), // 0x<#code#>
+        I(  .SRA,    .C), // 0x<#code#>
+        I(  .SRA,    .D), // 0x<#code#>
+        I(  .SRA,    .E), // 0x<#code#>
+        I(  .SRA,    .H), // 0x<#code#>
+        I(  .SRA,    .L), // 0x<#code#>
+        I(  .SRA,    .Mem(.HL)), // 0x<#code#>
+        I(  .SRA,    .A), // 0x<#code#>
+        
+        I(  .SWAP,    .B), // 0x<#code#>
+        I(  .SWAP,    .C), // 0x<#code#>
+        I(  .SWAP,    .D), // 0x<#code#>
+        I(  .SWAP,    .E), // 0x<#code#>
+        I(  .SWAP,    .H), // 0x<#code#>
+        I(  .SWAP,    .L), // 0x<#code#>
+        I(  .SWAP,    .Mem(.HL)), // 0x<#code#>
+        I(  .SWAP,    .A), // 0x<#code#>
+        I(  .SRL,    .B), // 0x<#code#>
+        I(  .SRL,    .C), // 0x<#code#>
+        I(  .SRL,    .D), // 0x<#code#>
+        I(  .SRL,    .E), // 0x<#code#>
+        I(  .SRL,    .H), // 0x<#code#>
+        I(  .SRL,    .L), // 0x<#code#>
+        I(  .SRL,    .Mem(.HL)), // 0x<#code#>
+        I(  .SRL,    .A), // 0x<#code#>
+        
+        I(  .BIT, .Number(0),    .B), // 0x<#code#>
+        I(  .BIT, .Number(0),   .C), // 0x<#code#>
+        I(  .BIT, .Number(0),   .D), // 0x<#code#>
+        I(  .BIT, .Number(0),   .E), // 0x<#code#>
+        I(  .BIT,  .Number(0),  .H), // 0x<#code#>
+        I(  .BIT,  .Number(0),  .L), // 0x<#code#>
+        I(  .BIT,  .Number(0),  .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(0),   .A), // 0x<#code#>
+        I(  .BIT, .Number(1),   .B), // 0x<#code#>
+        I(  .BIT, .Number(1),   .C), // 0x<#code#>
+        I(  .BIT, .Number(1),   .D), // 0x<#code#>
+        I(  .BIT, .Number(1),   .E), // 0x<#code#>
+        I(  .BIT, .Number(1),   .H), // 0x<#code#>
+        I(  .BIT, .Number(1),   .L), // 0x<#code#>
+        I(  .BIT, .Number(1),   .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(1),   .A), // 0x<#code#>
+        
+        I(  .BIT, .Number(2),    .B), // 0x<#code#>
+        I(  .BIT, .Number(2),   .C), // 0x<#code#>
+        I(  .BIT, .Number(2),   .D), // 0x<#code#>
+        I(  .BIT, .Number(2),   .E), // 0x<#code#>
+        I(  .BIT,  .Number(2),  .H), // 0x<#code#>
+        I(  .BIT,  .Number(2),  .L), // 0x<#code#>
+        I(  .BIT,  .Number(2),  .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(2),   .A), // 0x<#code#>
+        I(  .BIT, .Number(3),   .B), // 0x<#code#>
+        I(  .BIT, .Number(3),   .C), // 0x<#code#>
+        I(  .BIT, .Number(3),   .D), // 0x<#code#>
+        I(  .BIT, .Number(3),   .E), // 0x<#code#>
+        I(  .BIT, .Number(3),   .H), // 0x<#code#>
+        I(  .BIT, .Number(3),   .L), // 0x<#code#>
+        I(  .BIT, .Number(3),   .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(3),   .A), // 0x<#code#>
+        
+        I(  .BIT, .Number(4),    .B), // 0x<#code#>
+        I(  .BIT, .Number(4),   .C), // 0x<#code#>
+        I(  .BIT, .Number(4),   .D), // 0x<#code#>
+        I(  .BIT, .Number(4),   .E), // 0x<#code#>
+        I(  .BIT,  .Number(4),  .H), // 0x<#code#>
+        I(  .BIT,  .Number(4),  .L), // 0x<#code#>
+        I(  .BIT,  .Number(4),  .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(4),   .A), // 0x<#code#>
+        I(  .BIT, .Number(5),   .B), // 0x<#code#>
+        I(  .BIT, .Number(5),   .C), // 0x<#code#>
+        I(  .BIT, .Number(5),   .D), // 0x<#code#>
+        I(  .BIT, .Number(5),   .E), // 0x<#code#>
+        I(  .BIT, .Number(5),   .H), // 0x<#code#>
+        I(  .BIT, .Number(5),   .L), // 0x<#code#>
+        I(  .BIT, .Number(5),   .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(5),   .A), // 0x<#code#>
+        
+        I(  .BIT, .Number(6),    .B), // 0x<#code#>
+        I(  .BIT, .Number(6),   .C), // 0x<#code#>
+        I(  .BIT, .Number(6),   .D), // 0x<#code#>
+        I(  .BIT, .Number(6),   .E), // 0x<#code#>
+        I(  .BIT,  .Number(6),  .H), // 0x<#code#>
+        I(  .BIT,  .Number(6),  .L), // 0x<#code#>
+        I(  .BIT,  .Number(6),  .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(6),   .A), // 0x<#code#>
+        I(  .BIT, .Number(7),   .B), // 0x<#code#>
+        I(  .BIT, .Number(7),   .C), // 0x<#code#>
+        I(  .BIT, .Number(7),   .D), // 0x<#code#>
+        I(  .BIT, .Number(7),   .E), // 0x<#code#>
+        I(  .BIT, .Number(7),   .H), // 0x<#code#>
+        I(  .BIT, .Number(7),   .L), // 0x<#code#>
+        I(  .BIT, .Number(7),   .Mem(.HL)), // 0x<#code#>
+        I(  .BIT, .Number(7),   .A), // 0x<#code#>
+        
+        I(  .RES, .Number(0),    .B), // 0x<#code#>
+        I(  .RES, .Number(0),   .C), // 0x<#code#>
+        I(  .RES, .Number(0),   .D), // 0x<#code#>
+        I(  .RES, .Number(0),   .E), // 0x<#code#>
+        I(  .RES,  .Number(0),  .H), // 0x<#code#>
+        I(  .RES,  .Number(0),  .L), // 0x<#code#>
+        I(  .RES,  .Number(0),  .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(0),   .A), // 0x<#code#>
+        I(  .RES, .Number(1),   .B), // 0x<#code#>
+        I(  .RES, .Number(1),   .C), // 0x<#code#>
+        I(  .RES, .Number(1),   .D), // 0x<#code#>
+        I(  .RES, .Number(1),   .E), // 0x<#code#>
+        I(  .RES, .Number(1),   .H), // 0x<#code#>
+        I(  .RES, .Number(1),   .L), // 0x<#code#>
+        I(  .RES, .Number(1),   .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(1),   .A), // 0x<#code#>
+        
+        I(  .RES, .Number(2),    .B), // 0x<#code#>
+        I(  .RES, .Number(2),   .C), // 0x<#code#>
+        I(  .RES, .Number(2),   .D), // 0x<#code#>
+        I(  .RES, .Number(2),   .E), // 0x<#code#>
+        I(  .RES,  .Number(2),  .H), // 0x<#code#>
+        I(  .RES,  .Number(2),  .L), // 0x<#code#>
+        I(  .RES,  .Number(2),  .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(2),   .A), // 0x<#code#>
+        I(  .RES, .Number(3),   .B), // 0x<#code#>
+        I(  .RES, .Number(3),   .C), // 0x<#code#>
+        I(  .RES, .Number(3),   .D), // 0x<#code#>
+        I(  .RES, .Number(3),   .E), // 0x<#code#>
+        I(  .RES, .Number(3),   .H), // 0x<#code#>
+        I(  .RES, .Number(3),   .L), // 0x<#code#>
+        I(  .RES, .Number(3),   .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(3),   .A), // 0x<#code#>
+        
+        I(  .RES, .Number(4),    .B), // 0x<#code#>
+        I(  .RES, .Number(4),   .C), // 0x<#code#>
+        I(  .RES, .Number(4),   .D), // 0x<#code#>
+        I(  .RES, .Number(4),   .E), // 0x<#code#>
+        I(  .RES,  .Number(4),  .H), // 0x<#code#>
+        I(  .RES,  .Number(4),  .L), // 0x<#code#>
+        I(  .RES,  .Number(4),  .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(4),   .A), // 0x<#code#>
+        I(  .RES, .Number(5),   .B), // 0x<#code#>
+        I(  .RES, .Number(5),   .C), // 0x<#code#>
+        I(  .RES, .Number(5),   .D), // 0x<#code#>
+        I(  .RES, .Number(5),   .E), // 0x<#code#>
+        I(  .RES, .Number(5),   .H), // 0x<#code#>
+        I(  .RES, .Number(5),   .L), // 0x<#code#>
+        I(  .RES, .Number(5),   .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(5),   .A), // 0x<#code#>
+        
+        I(  .RES, .Number(6),    .B), // 0x<#code#>
+        I(  .RES, .Number(6),   .C), // 0x<#code#>
+        I(  .RES, .Number(6),   .D), // 0x<#code#>
+        I(  .RES, .Number(6),   .E), // 0x<#code#>
+        I(  .RES,  .Number(6),  .H), // 0x<#code#>
+        I(  .RES,  .Number(6),  .L), // 0x<#code#>
+        I(  .RES,  .Number(6),  .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(6),   .A), // 0x<#code#>
+        I(  .RES, .Number(7),   .B), // 0x<#code#>
+        I(  .RES, .Number(7),   .C), // 0x<#code#>
+        I(  .RES, .Number(7),   .D), // 0x<#code#>
+        I(  .RES, .Number(7),   .E), // 0x<#code#>
+        I(  .RES, .Number(7),   .H), // 0x<#code#>
+        I(  .RES, .Number(7),   .L), // 0x<#code#>
+        I(  .RES, .Number(7),   .Mem(.HL)), // 0x<#code#>
+        I(  .RES, .Number(7),   .A), // 0x<#code#>
+        
+        I(  .SET, .Number(0),    .B), // 0x<#code#>
+        I(  .SET, .Number(0),   .C), // 0x<#code#>
+        I(  .SET, .Number(0),   .D), // 0x<#code#>
+        I(  .SET, .Number(0),   .E), // 0x<#code#>
+        I(  .SET,  .Number(0),  .H), // 0x<#code#>
+        I(  .SET,  .Number(0),  .L), // 0x<#code#>
+        I(  .SET,  .Number(0),  .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(0),   .A), // 0x<#code#>
+        I(  .SET, .Number(1),   .B), // 0x<#code#>
+        I(  .SET, .Number(1),   .C), // 0x<#code#>
+        I(  .SET, .Number(1),   .D), // 0x<#code#>
+        I(  .SET, .Number(1),   .E), // 0x<#code#>
+        I(  .SET, .Number(1),   .H), // 0x<#code#>
+        I(  .SET, .Number(1),   .L), // 0x<#code#>
+        I(  .SET, .Number(1),   .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(1),   .A), // 0x<#code#>
+        
+        I(  .SET, .Number(2),    .B), // 0x<#code#>
+        I(  .SET, .Number(2),   .C), // 0x<#code#>
+        I(  .SET, .Number(2),   .D), // 0x<#code#>
+        I(  .SET, .Number(2),   .E), // 0x<#code#>
+        I(  .SET,  .Number(2),  .H), // 0x<#code#>
+        I(  .SET,  .Number(2),  .L), // 0x<#code#>
+        I(  .SET,  .Number(2),  .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(2),   .A), // 0x<#code#>
+        I(  .SET, .Number(3),   .B), // 0x<#code#>
+        I(  .SET, .Number(3),   .C), // 0x<#code#>
+        I(  .SET, .Number(3),   .D), // 0x<#code#>
+        I(  .SET, .Number(3),   .E), // 0x<#code#>
+        I(  .SET, .Number(3),   .H), // 0x<#code#>
+        I(  .SET, .Number(3),   .L), // 0x<#code#>
+        I(  .SET, .Number(3),   .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(3),   .A), // 0x<#code#>
+        
+        I(  .SET, .Number(4),    .B), // 0x<#code#>
+        I(  .SET, .Number(4),   .C), // 0x<#code#>
+        I(  .SET, .Number(4),   .D), // 0x<#code#>
+        I(  .SET, .Number(4),   .E), // 0x<#code#>
+        I(  .SET,  .Number(4),  .H), // 0x<#code#>
+        I(  .SET,  .Number(4),  .L), // 0x<#code#>
+        I(  .SET,  .Number(4),  .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(4),   .A), // 0x<#code#>
+        I(  .SET, .Number(5),   .B), // 0x<#code#>
+        I(  .SET, .Number(5),   .C), // 0x<#code#>
+        I(  .SET, .Number(5),   .D), // 0x<#code#>
+        I(  .SET, .Number(5),   .E), // 0x<#code#>
+        I(  .SET, .Number(5),   .H), // 0x<#code#>
+        I(  .SET, .Number(5),   .L), // 0x<#code#>
+        I(  .SET, .Number(5),   .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(5),   .A), // 0x<#code#>
+        
+        I(  .SET, .Number(6),    .B), // 0x<#code#>
+        I(  .SET, .Number(6),   .C), // 0x<#code#>
+        I(  .SET, .Number(6),   .D), // 0x<#code#>
+        I(  .SET, .Number(6),   .E), // 0x<#code#>
+        I(  .SET,  .Number(6),  .H), // 0x<#code#>
+        I(  .SET,  .Number(6),  .L), // 0x<#code#>
+        I(  .SET,  .Number(6),  .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(6),   .A), // 0x<#code#>
+        I(  .SET, .Number(7),   .B), // 0x<#code#>
+        I(  .SET, .Number(7),   .C), // 0x<#code#>
+        I(  .SET, .Number(7),   .D), // 0x<#code#>
+        I(  .SET, .Number(7),   .E), // 0x<#code#>
+        I(  .SET, .Number(7),   .H), // 0x<#code#>
+        I(  .SET, .Number(7),   .L), // 0x<#code#>
+        I(  .SET, .Number(7),   .Mem(.HL)), // 0x<#code#>
+        I(  .SET, .Number(7),   .A), // 0x<#code#>
+    ]
     
     static func fetchInstruction(index: UInt16) -> ()->() {
         
@@ -177,10 +614,10 @@ func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
         return generateBinOp16({$1}, dest!, source!)
     case .INC8:
         let adder: (UInt8) -> UInt8 = { b in
-            CPU.Flags.halfCarry = b & 0b1111 == 0b1111 // will only be a half carry if this value is 0b1111
-            CPU.Flags.subtract = false
+            Registers.Flags.halfCarry = b & 0b1111 == 0b1111 // will only be a half carry if this value is 0b1111
+            Registers.Flags.subtract = false
             let c = Int8(bitPattern: b) &+ 1
-            CPU.Flags.zero = c == 0
+            Registers.Flags.zero = c == 0
             return UInt8(bitPattern: c)
         }
         return generateUnaryOp8(adder, dest!)
@@ -192,11 +629,11 @@ func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
         return generateUnaryOp16(adder, dest!)
     case .DEC8:
         let decrementer: (UInt8) -> UInt8 = { b in
-            CPU.Flags.halfCarry = b & 0b0000 == 0b0000
-            CPU.Flags.subtract = true
+            Registers.Flags.halfCarry = b & 0b0000 == 0b0000
+            Registers.Flags.subtract = true
             
             let c = Int8(bitPattern: b) &- 1
-            CPU.Flags.zero = c == 0
+            Registers.Flags.zero = c == 0
             return UInt8(bitPattern: c)
         }
         return generateUnaryOp8(decrementer, dest!)
@@ -211,10 +648,10 @@ func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
             let x = Int8(bitPattern: a)
             let y = Int8(bitPattern: b)
             let c = x.addingReportingOverflow(y)
-            CPU.Flags.carry = c.overflow
-            CPU.Flags.halfCarry = ((x & 0xF) + (y & 0xF)) & 0x10 > 0
-            CPU.Flags.subtract = false
-            CPU.Flags.zero = c.partialValue == 0
+            Registers.Flags.carry = c.overflow
+            Registers.Flags.halfCarry = ((x & 0xF) + (y & 0xF)) & 0x10 > 0
+            Registers.Flags.subtract = false
+            Registers.Flags.zero = c.partialValue == 0
             return UInt8(bitPattern: c.partialValue)
         }
         return generateBinOp8(adder, dest!, source!)
@@ -223,14 +660,15 @@ func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
             let f = Int16(bitPattern: a)
             let s = Int16(bitPattern: b)
             let c = f.addingReportingOverflow(s)
-            CPU.Flags.carry = c.overflow
+            Registers.Flags.carry = c.overflow
             // the below operation might be really slow
-            CPU.Flags.halfCarry = Int8(bitPattern: UInt8(a & 0x00FF)).addingReportingOverflow(Int8(bitPattern: UInt8(b & 0x00FF))).overflow
-            CPU.Flags.subtract = false
+            Registers.Flags.halfCarry = Int8(bitPattern: UInt8(a & 0x00FF)).addingReportingOverflow(Int8(bitPattern: UInt8(b & 0x00FF))).overflow
+            Registers.Flags.subtract = false
             return UInt16(bitPattern: c.partialValue)
         }
         return generateBinOp16(adder, dest!, source!)
-        
+    case .PREFIX:
+        return { fatalError() }
     default:
         return { fatalError("Unimplemented operation!") }
     }

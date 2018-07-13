@@ -24,6 +24,13 @@ struct Registers {
     var R: UInt8 = 0
     var PC: UInt16 = 0
     
+    struct Flags {
+        static var zero: Bool = false
+        static var subtract: Bool = false
+        static var halfCarry: Bool = false
+        static var carry: Bool = false
+    }
+    
     var BC: UInt16 {
         get {
             return (UInt16(B) << 8) | UInt16(C)
@@ -55,6 +62,7 @@ struct Registers {
     }
     
 }
+
 
 
 
