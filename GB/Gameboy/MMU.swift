@@ -15,28 +15,27 @@ class MMU {
     enum CartridgeType {
         case ROM_only
         case MBC1
+        case MBC3
     }
     
-    var cartridge_type: CartridgeType = .ROM_only
-    
-    func openRom(fileName: String) {
-        guard let rom = try? Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: fileName, ofType: "gb")!)) else { assert(false) }
-        
-        bank0 = rom.subdata(in: Range<Data.Index>(0..<0x4000))
-        
-        // determine the cartridge type based on the value at this address
-        switch rom[0x147] {
-        case 0:
-            cartridge_type = .ROM_only
-            bank1 = rom.subdata(in: Range<Data.Index>(0x4000..<0x8000))
-        default:
-            // this can be expanded later to support other cartridge types but only one case is needed for tetris
-            cartridge_type = .ROM_only
-            bank1 = Data(repeating: 0, count: 0x4000)
+    var cartridge: Cartridge? {
+        didSet {
+            if cartridge != nil {
+                bank0 = cartridge!.ROMbanks[0]
+                externRAM = cartridge!.getRAMBank(at: 0)
+            }
         }
     }
     
-    var bios_mode = true
+    static var WRAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating:0, count: 0x1000), count: 8)
+    static var activeWRAMbank = withUnsafeMutablePointer(to: &WRAMbanks[0], {$0})
+    
+    static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
+    static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
+    
+    var cartridge_type: CartridgeType = .ROM_only
+    
+    var bios_mode = false
     
     var bios: Data = try! Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "bios", ofType: "gb")!))
     var rom: Data?
@@ -45,12 +44,13 @@ class MMU {
     var bank1: Data = Data(repeating: 0, count: 0x4000)
     var vram: Data = Data(repeating: 0, count: 0x2000) // this should be removed, vram should be part of the GPU
     var wram: Data = Data(repeating: 0, count: 0x2000)
+    var externRAM: UnsafeMutablePointer<Data>?
     var iram: Data = Data(repeating: 0, count: 0x80)
     var interruptEnable: Bool = false
     
     subscript(index: UInt16) -> UInt8 {
         get {
-            switch(index & 0xF000) {
+            switch(index >> 12) {
             case 0:
                 if(bios_mode) {
                     guard (index < 0x100) else { assert(false) }
@@ -60,23 +60,18 @@ class MMU {
             case 0x1...0x3:
                 return bank0[index]
             case 0x4...0x7:
-                // this only supports ROM ONLY
-                // to support MBC1 for tetris we need switchable banks or something of that nature
-                // also, can only determine how data should be stored at emulation time
-                switch cartridge_type {
-                case .ROM_only:
-                    return bank1[index & 0x3FFF]
-                default:
-                    return 0
-                }
+                return bank1[index]
                 
             case 0x8...0x9:
-                return vram[index & 0x1FFF]
+                return MMU.activeVRAMbank.pointee[index & 0x1FFF]
             case 0xA...0xB:
                 // TODO: implement external RAM
-                return 0
-            case 0xC...0xD:
-                return wram[index & 0x1FFF]
+                return externRAM!.pointee[Int(index)]
+            case 0xC:
+                return MMU.WRAMbanks[0][index & 0x0FFF]
+            case 0xD:
+                return MMU.activeWRAMbank.pointee[index & 0x0FFF]
+                
             case 0xE...0xF:
                 if (index < 0xFE00) {
                     return wram[index & 0x1FFF]
@@ -84,10 +79,31 @@ class MMU {
                     switch(index) {
                     case 0xFE00..<0xFF00:
                         // TODO: this holds sprite information
-                        fallthrough
-                    case 0xFF00..<0xFF80:
-                        // TODO: this must interface with memory mapped IO somehow
-                        fallthrough
+                        break
+                    case 0xFF00:
+                        // input/output ports
+                        break
+                    case 0xFF01:
+                        // serial cable communications p 28
+                        break
+                    case 0xFF02:
+                        break
+                    case 0xFF05...0xFF07:
+                        // timer registers p 25
+                        break
+                
+                    case 0xFF0F:
+                        // interrupt flags p 26
+                        break
+                    case 0xFF40:
+                        // LCDC register
+                        break
+                    case 0xFF4D:
+                        // cpu speed switching
+                        break
+                    case 0xFF56:
+                        // IR communication
+                        break
                     case 0xFF80..<0xFFFF:
                         return iram[index & 0x007F]
                     case 0xFFFF:
@@ -104,22 +120,19 @@ class MMU {
         
         set {
             
-            switch(index & 0xF000) {
-            case 0...3:
+            switch(index >> 12) {
+            case 0..<2:
+                // this is a rom bank so we should never write to it
                 bank0[index] = newValue
-            case 4...7:
-                // this only supports ROM ONLY
-                // to support MBC1 for tetris we need switchable banks or something of that nature
-                // also, can only determine how data should be stored at emulation time
-                switch cartridge_type {
-                case .ROM_only:
-                    bank1[index & 0x3FFF] = newValue
-                default:
-                    break
-                }
-                
+            case 2...3:
+                bank1 = cartridge!.getROMBank(at: newValue)
+            case 4...5:
+                externRAM = cartridge!.getRAMBank(at: newValue & 0x000F)
+            case 6...7:
+                // bottom of p 216 in gbc manual
+                break
             case 8...9:
-                vram[index & 0x1FFF] = newValue
+                MMU.activeVRAMbank.pointee[index & 0x1FFF] = newValue
             case 10...11:
                 // TODO: implement external RAM
                 print("unimplemented")
@@ -133,9 +146,16 @@ class MMU {
                     case 0xFE00..<0xFF00:
                         // TODO: this holds sprite information
                         fallthrough
-                    case 0xFF00..<0xFF80:
-                        // TODO: this must interface with memory mapped IO somehow
-                        fallthrough
+                    case 0xFF70:
+                        let bank = newValue == 0 ? 1 : newValue
+                        MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
+                    case 0xFF4D:
+                        // cpu speed switching
+                        break
+                    case 0xFF4F:
+                        // vram bank switching
+                        MMU.activeVRAMbank = withUnsafeMutablePointer(to: &MMU.VRAMbanks[newValue], {$0})
+                        break
                     case 0xFF80..<0xFFFF:
                         iram[index & 0x007F] = newValue
                     case 0xFFFF:

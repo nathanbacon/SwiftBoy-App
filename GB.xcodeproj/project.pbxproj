@@ -7,12 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		752A88E320EDE8E7008BFB8A /* OpcodeAlgorithm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 752A88E220EDE8E7008BFB8A /* OpcodeAlgorithm.swift */; };
+		7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7544618620FB0FBF002C3687 /* Cartridge.swift */; };
+		7544618920FB1883002C3687 /* pokemon_blue.gb in Resources */ = {isa = PBXBuildFile; fileRef = 7544618820FB1883002C3687 /* pokemon_blue.gb */; };
 		754BA1CF20B53E5E00858222 /* bios.gb in Resources */ = {isa = PBXBuildFile; fileRef = 754BA1CE20B53E5E00858222 /* bios.gb */; };
 		754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754BA1D020B543CB00858222 /* GameBoyViewController.swift */; };
 		754BA1D820B5EEBF00858222 /* GameBoy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754BA1D720B5EEBF00858222 /* GameBoy.swift */; };
 		754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */; };
 		754DFF7320B3DECB00B3CDA3 /* MMU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754DFF7220B3DECB00B3CDA3 /* MMU.swift */; };
+		7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7590371320FC324D0065F70A /* GameboyDebugViewController.swift */; };
 		75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */; };
 		75A58D8C20A4D92D00CB2DD2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8A20A4D92D00CB2DD2 /* Main.storyboard */; };
 		75A58D8E20A4D92D00CB2DD2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8D20A4D92D00CB2DD2 /* Assets.xcassets */; };
@@ -22,12 +24,14 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		752A88E220EDE8E7008BFB8A /* OpcodeAlgorithm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpcodeAlgorithm.swift; sourceTree = "<group>"; };
+		7544618620FB0FBF002C3687 /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
+		7544618820FB1883002C3687 /* pokemon_blue.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = pokemon_blue.gb; sourceTree = "<group>"; };
 		754BA1CE20B53E5E00858222 /* bios.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = bios.gb; sourceTree = "<group>"; };
 		754BA1D020B543CB00858222 /* GameBoyViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoyViewController.swift; sourceTree = "<group>"; };
 		754BA1D720B5EEBF00858222 /* GameBoy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoy.swift; sourceTree = "<group>"; };
 		754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Instruction.swift; sourceTree = "<group>"; };
 		754DFF7220B3DECB00B3CDA3 /* MMU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMU.swift; sourceTree = "<group>"; };
+		7590371320FC324D0065F70A /* GameboyDebugViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameboyDebugViewController.swift; sourceTree = "<group>"; };
 		75A58D8320A4D92D00CB2DD2 /* GB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		75A58D8B20A4D92D00CB2DD2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -56,8 +60,9 @@
 				75D44C6720EA062A00AFF9C2 /* Registers.swift */,
 				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
+				7544618620FB0FBF002C3687 /* Cartridge.swift */,
 				754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */,
-				752A88E220EDE8E7008BFB8A /* OpcodeAlgorithm.swift */,
+				7544618820FB1883002C3687 /* pokemon_blue.gb */,
 				754BA1CE20B53E5E00858222 /* bios.gb */,
 			);
 			path = Gameboy;
@@ -83,6 +88,7 @@
 			isa = PBXGroup;
 			children = (
 				754BA1D020B543CB00858222 /* GameBoyViewController.swift */,
+				7590371320FC324D0065F70A /* GameboyDebugViewController.swift */,
 				754BA1D220B5452900858222 /* Gameboy */,
 				75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */,
 				75A58D8A20A4D92D00CB2DD2 /* Main.storyboard */,
@@ -154,6 +160,7 @@
 			files = (
 				75A58D9120A4D92D00CB2DD2 /* LaunchScreen.storyboard in Resources */,
 				75A58D8E20A4D92D00CB2DD2 /* Assets.xcassets in Resources */,
+				7544618920FB1883002C3687 /* pokemon_blue.gb in Resources */,
 				75A58D8C20A4D92D00CB2DD2 /* Main.storyboard in Resources */,
 				754BA1CF20B53E5E00858222 /* bios.gb in Resources */,
 			);
@@ -167,8 +174,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				754DFF7320B3DECB00B3CDA3 /* MMU.swift in Sources */,
-				752A88E320EDE8E7008BFB8A /* OpcodeAlgorithm.swift in Sources */,
+				7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */,
 				754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */,
+				7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */,
 				75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */,
 				754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */,
 				75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */,

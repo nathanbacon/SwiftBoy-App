@@ -16,8 +16,6 @@ class CPU {
     
     static var registers = Registers()
     
-    
-    
     static var mmu: MMU = MMU.mmu
     
     //static var currentInstruction: Instruction = CPU.basicTable[0]
@@ -26,6 +24,10 @@ class CPU {
     
     private init() {
         
+    }
+    
+    static func execNextInstruction() {
+        CPU.fetchInstruction()()
     }
     
     static let basicTable: Array<()->()> = [
@@ -268,42 +270,42 @@ class CPU {
         I(  .SBC,    .A,    .Immed8), // 0xDE
         I(  .RST,    .Number(0x18)), // 0xDF
         
-        I(  .LDH,    .Mem(.Immed8), .A), // 0xC0
-        I(  .POP,    .HL), // 0x<#code#>
-        I(  .LD8,    .Mem(.C),    .A), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .PUSH,    .HL), // 0x<#code#>
-        I(  .AND,    .Immed8), // 0x<#code#>
-        I(  .RST,    .Number(0x20)), // 0x<#code#>
-        I(  .ADD8,    .SP,    .Immed8), // 0x<#code#>
-        I(  .JP, .Mem(.HL)), // 0x<#code#>
-        I(  .LD8,    .Mem(.Immed16),    .A), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .XOR,    .Immed8), // 0x<#code#>
-        I(  .RST,    .Number(0x28)), // 0x<#code#>
+        I(  .LDH,    .Mem(.Immed8), .A), // 0xE0
+        I(  .POP,    .HL), // 0xE1
+        I(  .LD8,    .Mem(.C),    .A), // 0xE2
+        I(  .UNIMPLEMENTED), // 0xE3
+        I(  .UNIMPLEMENTED), // 0xE4
+        I(  .PUSH,    .HL), // 0xE5
+        I(  .AND,    .Immed8), // 0xE6
+        I(  .RST,    .Number(0x20)), // 0xE7
+        I(  .ADD8,    .SP,    .Immed8), // 0xE8
+        I(  .JP, .Mem(.HL)), // 0xE9
+        I(  .LD8,    .Mem(.Immed16),    .A), // 0xEA
+        I(  .UNIMPLEMENTED), // 0xEB
+        I(  .UNIMPLEMENTED), // 0xEC
+        I(  .UNIMPLEMENTED), // 0xED
+        I(  .XOR,    .Immed8), // 0xEE
+        I(  .RST,    .Number(0x28)), // 0xEF
         
-        I(  .LDH,    .A, .Mem(.Immed8)), // 0xC0
-        I(  .POP,    .AF), // 0x<#code#>
-        I(  .LD8,    .A,    .Mem(.C)), // 0x<#code#>
-        I(  .DI), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .PUSH,    .AF), // 0x<#code#>
-        I(  .OR,    .Immed8), // 0x<#code#>
-        I(  .RST,    .Number(0x30)), // 0x<#code#>
-        I(  .LD16,    .HL,    .SPr8), // 0x<#code#>
-        I(  .LD16, .SP, .HL), // 0x<#code#>
-        I(  .LD8,    .A,    .Mem(.Immed16)), // 0x<#code#>
-        I(  .EI), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .UNIMPLEMENTED), // 0x<#code#>
-        I(  .CP,    .Immed8), // 0x<#code#>
-        I(  .RST,    .Number(0x38)), // 0x<#code#>
+        I(  .LDH,    .A, .Mem(.Immed8)), // 0xF0
+        I(  .POP,    .AF), // 0xF1
+        I(  .LD8,    .A,    .Mem(.C)), // 0xF2
+        I(  .DI), // 0xF3
+        I(  .UNIMPLEMENTED), // 0xF4
+        I(  .PUSH,    .AF), // 0xF5
+        I(  .OR,    .Immed8), // 0xF6
+        I(  .RST,    .Number(0x30)), // 0xF7
+        I(  .LD16,    .HL,    .SPr8), // 0xF8
+        I(  .LD16, .SP, .HL), // 0xF9
+        I(  .LD8,    .A,    .Mem(.Immed16)), // 0xFA
+        I(  .EI), // 0xFB
+        I(  .UNIMPLEMENTED), // 0xFC
+        I(  .UNIMPLEMENTED), // 0xFD
+        I(  .CP,    .Immed8), // 0xFE
+        I(  .RST,    .Number(0x38)), // 0xFF
     ]
     
-    static let secondaryTable: Array<()->()> = [
+    static let prefixTable: Array<()->()> = [
         I(  .RLC,    .B), // 0x<#code#>
         I(  .RLC,    .C), // 0x<#code#>
         I(  .RLC,    .D), // 0x<#code#>
@@ -577,9 +579,10 @@ class CPU {
         I(  .SET, .Number(7),   .A), // 0x<#code#>
     ]
     
-    static func fetchInstruction(index: UInt16) -> ()->() {
+    static func fetchInstruction() -> ()->() {
         
         let opcode = CPU.mmu[CPU.registers.PC]
+        CPU.registers.PC += 1
         return CPU.basicTable[opcode]
         
     }
@@ -614,64 +617,347 @@ func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
         return generateBinOp16({$1}, dest!, source!)
     case .INC8:
         let adder: (UInt8) -> UInt8 = { b in
-            Registers.Flags.halfCarry = b & 0b1111 == 0b1111 // will only be a half carry if this value is 0b1111
-            Registers.Flags.subtract = false
-            let c = Int8(bitPattern: b) &+ 1
-            Registers.Flags.zero = c == 0
-            return UInt8(bitPattern: c)
+            CPU.registers.flags.halfCarry = b & 0b1111 == 0b1111 // will only be a half carry if this value is 0b1111
+            CPU.registers.flags.subtract = false
+            let c = b &+ 1
+            CPU.registers.flags.zero = c == 0
+            return c
         }
         return generateUnaryOp8(adder, dest!)
     case .INC16:
         let adder: (UInt16) -> UInt16 = { b in
-            let c = Int16(bitPattern: b)
-            return UInt16(bitPattern: c &+ 1)
+            return b &+ 1
         }
         return generateUnaryOp16(adder, dest!)
     case .DEC8:
         let decrementer: (UInt8) -> UInt8 = { b in
-            Registers.Flags.halfCarry = b & 0b0000 == 0b0000
-            Registers.Flags.subtract = true
+            CPU.registers.flags.halfCarry = b & 0b0000 == 0b0000
+            CPU.registers.flags.subtract = true
             
-            let c = Int8(bitPattern: b) &- 1
-            Registers.Flags.zero = c == 0
-            return UInt8(bitPattern: c)
+            let c = b &- 1
+            CPU.registers.flags.zero = c == 0
+            return c
         }
         return generateUnaryOp8(decrementer, dest!)
     case .DEC16:
         let decrementer: (UInt16) -> (UInt16) = { b in
-            let c = Int16(bitPattern: b)
-            return UInt16(bitPattern: c &- 1)
+            return b &- 1
         }
         return generateUnaryOp16(decrementer, dest!)
     case .ADD8:
         let adder: (UInt8, UInt8) -> UInt8 = { a, b in
-            let x = Int8(bitPattern: a)
-            let y = Int8(bitPattern: b)
-            let c = x.addingReportingOverflow(y)
-            Registers.Flags.carry = c.overflow
-            Registers.Flags.halfCarry = ((x & 0xF) + (y & 0xF)) & 0x10 > 0
-            Registers.Flags.subtract = false
-            Registers.Flags.zero = c.partialValue == 0
-            return UInt8(bitPattern: c.partialValue)
+            // it's not necessary to even convert to integer for arithmetic, the binary will be the same,
+            // numeric answers only depend on whether we read it as 2's complement
+            // as long as we use unsafe operation, we'll get the right answer
+            let c = a.addingReportingOverflow(b)
+            CPU.registers.flags.carry = c.overflow
+            CPU.registers.flags.halfCarry = ((a & 0xF) + (b & 0xF)) & 0x10 > 0
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.zero = c.partialValue == 0
+            return c.partialValue
         }
         return generateBinOp8(adder, dest!, source!)
     case .ADD16:
         let adder: (UInt16, UInt16) -> UInt16 = { a, b in
-            let f = Int16(bitPattern: a)
-            let s = Int16(bitPattern: b)
-            let c = f.addingReportingOverflow(s)
-            Registers.Flags.carry = c.overflow
+            let c = a.addingReportingOverflow(b)
+            CPU.registers.flags.carry = c.overflow
             // the below operation might be really slow
-            Registers.Flags.halfCarry = Int8(bitPattern: UInt8(a & 0x00FF)).addingReportingOverflow(Int8(bitPattern: UInt8(b & 0x00FF))).overflow
-            Registers.Flags.subtract = false
-            return UInt16(bitPattern: c.partialValue)
+            CPU.registers.flags.halfCarry = UInt8(a & 0x00FF).addingReportingOverflow(UInt8(b & 0x00FF)).overflow
+            CPU.registers.flags.subtract = false
+            return c.partialValue
         }
         return generateBinOp16(adder, dest!, source!)
+    case .ADC:
+        let adder: (UInt8, UInt8) -> UInt8 = { a, b in
+            let carry: UInt8 = CPU.registers.flags.carry ? 1 : 0
+            let c = a.addingReportingOverflow(b &+ carry)
+            CPU.registers.flags.carry = c.overflow
+            CPU.registers.flags.halfCarry = ((a & 0xF) + (b & 0xF) + carry) & 0x10 > 0
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.zero = c.partialValue == 0
+            return c.partialValue
+        }
+        return generateBinOp8(adder, dest!, source!)
+    case .SBC:
+        let subtracter: (UInt8, UInt8) -> UInt8 = { a, b in
+            let carry: UInt8 = CPU.registers.flags.carry ? 1 : 0
+            let c = a.subtractingReportingOverflow(b &+ carry)
+            CPU.registers.flags.carry = c.overflow
+            CPU.registers.flags.halfCarry = ((a & 0xF) &- (b & 0xF) &- carry) & 0x10 > 0
+            CPU.registers.flags.subtract = true
+            CPU.registers.flags.zero = c.partialValue == 0
+            return c.partialValue
+        }
+        return generateBinOp8(subtracter, dest!, source!)
+    case .SUB:
+        let subtracter: (UInt8, UInt8) -> UInt8 = { a, b in
+            let c = a.subtractingReportingOverflow(b)
+            CPU.registers.flags.carry = c.overflow
+            // is the minus operator correct for the half carry? it must be the same as addition but it converts the second op to 2's comp
+            // which may not be what you want to happen
+            // on second thought, subtracting might be right
+            CPU.registers.flags.halfCarry = ((a & 0xF) &- (b & 0xF)) & 0x10 > 0
+            CPU.registers.flags.subtract = true
+            CPU.registers.flags.zero = c.partialValue == 0
+            return c.partialValue
+        }
+        return generateBinOp8(subtracter, .A, dest!) // even though SUB B is unary, it has the semantic of binary with A as the default
+    case .AND:
+        let and: (UInt8, UInt8) -> UInt8 = { a, b in
+            let c = CPU.registers.A & b
+            CPU.registers.flags.zero = c == 0
+            CPU.registers.flags.halfCarry = true
+            CPU.registers.flags.carry = false
+            CPU.registers.flags.subtract = false
+            return c
+        }
+        return generateBinOp8(and, .A, dest!)
+    case .OR:
+        let or: (UInt8, UInt8) -> UInt8 = { a, b in
+            let c = CPU.registers.A | b
+            CPU.registers.flags.zero = c == 0
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.carry = false
+            CPU.registers.flags.subtract = false
+            return c
+        }
+        return generateBinOp8(or, .A, dest!)
+    case .XOR:
+        let xor: (UInt8, UInt8) -> UInt8 = { a, b in
+            let c = CPU.registers.A ^ b
+            CPU.registers.flags.zero = c == 0
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.carry = false
+            CPU.registers.flags.subtract = false
+            return c
+        }
+        return generateBinOp8(xor, .A, dest!)
+    case .CP:
+        let cp: (UInt8, UInt8) -> UInt8 = { a, b in
+            CPU.registers.flags.zero = a == b
+            CPU.registers.flags.halfCarry = a > b
+            CPU.registers.flags.carry = a < b
+            CPU.registers.flags.subtract = false
+            return a
+        }
+        return generateBinOp8(cp, .A, dest!)
+    case .SWAP:
+        let swap: (UInt8) -> UInt8 = { a in
+            let l = a & 0x0F
+            let h = a & 0xF0
+            return (l << 4) | (h >> 4)
+        }
+        return generateUnaryOp8(swap, dest!)
+    case .RLCA:
+        return {
+            CPU.registers.flags.carry = (0b10000000 & CPU.registers.A) > 0
+            CPU.registers.A <<= 1
+            if CPU.registers.flags.carry {
+                CPU.registers.A |= 1
+            }
+        }
+    case .RRCA:
+        return {
+            CPU.registers.flags.carry = (0b00000001 & CPU.registers.A) > 0
+            CPU.registers.A <<= 1
+            if CPU.registers.flags.carry {
+                CPU.registers.A |= 0b10000000
+            }
+        }
+    case .RRA:
+        return {
+            CPU.registers.flags.carry = (0b00000001 & CPU.registers.A) > 0
+            CPU.registers.A >>= 1
+        }
+    case .RLA:
+        return {
+            CPU.registers.flags.carry = (0b10000000 & CPU.registers.A) > 0
+            CPU.registers.A <<= 1
+        }
+    case .RLC:
+        let rotateLeft: (UInt8) -> UInt8 = { a in
+            CPU.registers.flags.carry = (0b10000000 & a) > 0
+            if CPU.registers.flags.carry {
+                CPU.registers.A |= 0x80
+            }
+            return a << 1
+        }
+        return generateUnaryOp8(rotateLeft, dest!)
+    case .POP:
+        let pop: (UInt16) -> UInt16 = { _ in
+            let l = CPU.mmu[CPU.registers.SP]
+            CPU.registers.SP += 1
+            let h = CPU.mmu[CPU.registers.SP]
+            CPU.registers.SP += 1
+            return UInt16(h) << 8 | UInt16(l)
+        }
+        return generateUnaryOp16(pop, dest!)
+    case .PUSH:
+        let push: (UInt16) -> UInt16 = { a in
+            CPU.registers.SP -= 1
+            CPU.mmu[CPU.registers.SP] = UInt8((a & 0xFF00) >> 8)
+            CPU.registers.SP -= 1
+            CPU.mmu[CPU.registers.SP] = UInt8((a & 0x00FF))
+            return a
+        }
+        
+        return generateUnaryOp16(push, dest!)
+    case .CPL:
+        return {
+            CPU.registers.A = ~CPU.registers.A
+        }
+    case .RST:
+        guard case .Number(let addr)? = dest else { fatalError() }
+        return {
+            pushPC()
+            CPU.registers.PC = UInt16(addr)
+        }
+    case .CALL:
+        if case .Immed16? = dest {
+            return {
+                let i = CPU.readWordImmediate()
+                pushPC()
+                CPU.registers.PC = i
+            }
+        } else {
+            let condition: (()->(Bool))
+            switch dest! {
+            case .Z_flag:
+                condition = { CPU.registers.flags.zero }
+            case .NZ_flag:
+                condition = { !CPU.registers.flags.zero }
+            case .C_flag:
+                condition = { CPU.registers.flags.carry }
+            case .NC_flag:
+                condition = { !CPU.registers.flags.carry }
+            default:
+                condition = { fatalError() }
+            }
+            
+            return {
+                let i = CPU.readWordImmediate()
+                if condition() {
+                    pushPC()
+                    CPU.registers.PC = i
+                }
+            }
+        }
+    case .RET:
+        if let flag = dest {
+            let condition: (()->(Bool))
+            switch flag {
+            case .Z_flag:
+                condition = { CPU.registers.flags.zero }
+            case .NZ_flag:
+                condition = { !CPU.registers.flags.zero }
+            case .C_flag:
+                condition = { CPU.registers.flags.carry }
+            case .NC_flag:
+                condition = { !CPU.registers.flags.carry }
+            default:
+                condition = { fatalError() }
+            }
+            
+            return {
+                if condition() {
+                    popPC()
+                }
+            }
+        } else {
+            return popPC
+        }
+    case .JP:
+        fallthrough
+    case .JR:
+        
+        return generateJump(operation, dest!, source)
     case .PREFIX:
-        return { fatalError() }
+        return {
+            let opcode = CPU.mmu[CPU.registers.PC]
+            CPU.registers.PC += 1
+            CPU.prefixTable[opcode]()
+        }
+        
+    case .BIT:
+        return {
+            
+        }
     default:
         return { fatalError("Unimplemented operation!") }
     }
+    
+}
+
+func popPC() {
+    let l = CPU.mmu[CPU.registers.SP]
+    CPU.registers.SP += 1
+    let h = CPU.mmu[CPU.registers.SP]
+    CPU.registers.SP += 1
+    CPU.registers.PC = (UInt16(h) << 8) | UInt16(l)
+}
+
+func pushPC() {
+    CPU.registers.SP -= 1
+    CPU.mmu[CPU.registers.SP] = UInt8((CPU.registers.PC & 0xFF00) >> 8)
+    CPU.registers.SP -= 1
+    CPU.mmu[CPU.registers.SP] = UInt8((CPU.registers.PC & 0x00FF))
+}
+
+func generateJump(_ operation: InstType, _ arg1: Argument, _ arg2: Argument?) -> ()->() {
+    
+    let condition: (()->(Bool))?
+
+    switch arg1 {
+    case .NZ_flag:
+        condition = { !CPU.registers.flags.zero }
+    case .C_flag:
+        condition = { CPU.registers.flags.carry }
+    case .Z_flag:
+        condition = { CPU.registers.flags.zero }
+    case .NC_flag:
+        condition = { !CPU.registers.flags.carry }
+    default:
+        condition = nil
+    }
+    
+    
+    if let condition = condition {
+        guard let arg2 = arg2 else { fatalError() }
+        
+        if case .Immed16 = arg2 {
+            return {
+                if condition() {
+                    let l = UInt16(CPU.readByteImmediate())
+                    let h = UInt16(CPU.readByteImmediate()) << 8
+                    CPU.registers.PC = h | l
+                } else {
+                    // skip the 2 bytes of immediates
+                    CPU.registers.PC += 2
+                }
+            }
+        } else {
+            return {
+                let a = Int8(bitPattern: CPU.readByteImmediate())
+                let result = Int16(bitPattern: CPU.registers.PC) + Int16(a)
+                CPU.registers.PC = UInt16(bitPattern: result)
+            }
+        }
+    } else {
+        if case .Immed16 = arg1 {
+            return {
+                let l = UInt16(CPU.readByteImmediate())
+                let h = UInt16(CPU.readByteImmediate()) << 8
+                CPU.registers.PC = h | l
+            }
+        } else {
+            return {
+                let a = Int8(bitPattern: CPU.readByteImmediate())
+                let result = Int16(bitPattern: CPU.registers.PC) + Int16(a)
+                CPU.registers.PC = UInt16(bitPattern: result)
+            }
+        }
+     }
+    
     
 }
 
@@ -708,6 +994,10 @@ func generateUnaryOp8(_ operation: @escaping (UInt8) -> (UInt8), _ dest: Argumen
         return {
             let addr = CPU.registers.HL
             CPU.mmu[addr] = operation(CPU.mmu[addr])
+        }
+    case .L:
+        return {
+            CPU.registers.L = operation(CPU.registers.L)
         }
     default:
         fatalError()
@@ -762,6 +1052,8 @@ func generateBinOp8(_ operation :@escaping (UInt8, UInt8)->(UInt8),_ dest: Argum
         reader = { return CPU.registers.H }
     case .L:
         reader = { return CPU.registers.L }
+    case .Immed8:
+        reader = CPU.readByteImmediate
     case .Mem(let target):
         clocks += 4
         switch target {
@@ -877,6 +1169,11 @@ func generateBinOp8(_ operation :@escaping (UInt8, UInt8)->(UInt8),_ dest: Argum
                 CPU.clockCounter += clocks
                 CPU.mmu[CPU.registers.DE] = operation(0, reader())
             }
+        case .HL:
+            return {
+                CPU.clockCounter += clocks
+                CPU.mmu[CPU.registers.HL] = operation(0, reader())
+            }
         case .HLi:
             return {
                 CPU.clockCounter += clocks
@@ -888,6 +1185,14 @@ func generateBinOp8(_ operation :@escaping (UInt8, UInt8)->(UInt8),_ dest: Argum
                 CPU.clockCounter += clocks
                 CPU.mmu[CPU.registers.HL] = operation(0, reader())
                 CPU.registers.HL -= 1
+            }
+        case .Immed8:
+            return {
+                CPU.mmu[0xFF00 | UInt16(CPU.readByteImmediate())] = operation(0, reader())
+            }
+        case .Immed16:
+            return {
+                CPU.mmu[UInt16(CPU.readWordImmediate())] = operation(0, reader())
             }
         default:
             return { fatalError() }

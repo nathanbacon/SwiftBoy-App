@@ -19,17 +19,34 @@ struct Registers {
     var L: UInt8 = 0
     var IX: UInt16 = 0
     var IY: UInt16 = 0
-    var SP: UInt16 = 0
+    var SP: UInt16 = 0xFFFE
     var I: UInt8 = 0
     var R: UInt8 = 0
-    var PC: UInt16 = 0
+    var PC: UInt16 = 0x100
     
     struct Flags {
-        static var zero: Bool = false
-        static var subtract: Bool = false
-        static var halfCarry: Bool = false
-        static var carry: Bool = false
+        var zero: Bool = false
+        var subtract: Bool = false
+        var halfCarry: Bool = false
+        var carry: Bool = false
     }
+    
+    var flags: Flags = Flags()
+    
+    var zero: Bool {
+        get {
+            return F & 0b10000000 > 0
+        }
+        set {
+            if newValue {
+                F |= 0b10000000
+            } else {
+                F &= 0b01111111
+            }
+        }
+    }
+    
+    
     
     var BC: UInt16 {
         get {

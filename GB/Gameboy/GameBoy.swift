@@ -13,8 +13,22 @@ struct GameBoy {
     
     static var mmu: MMU = MMU.mmu
     
+    var cart: Cartridge
     
-    static func openROM(with fileName: String) {
-        mmu.openRom(fileName: fileName)
+    init() {
+        cart = Cartridge(filename: "pokemon_blue")
+        GameBoy.mmu.cartridge = cart
     }
+    
+    func runLoop() {
+        while true {
+            CPU.execNextInstruction()
+        }
+    }
+    
+    func execInstruc() {
+        CPU.execNextInstruction()
+    }
+    
+
 }

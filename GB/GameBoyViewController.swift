@@ -12,7 +12,8 @@ class GameBoyViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        GameBoy.openROM(with: "tetris")
+        let g = GameBoy()
+        g.runLoop()
         // Do any additional setup after loading the view.
     }
 
