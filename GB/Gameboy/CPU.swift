@@ -594,9 +594,10 @@ class CPU {
     }
     
     static func readWordImmediate() -> UInt16 {
-        let immed = CPU.mmu.fetchWord(at: CPU.registers.PC)
+        let l = CPU.mmu[CPU.registers.PC + 1]
+        let h = CPU.mmu[CPU.registers.PC]
         CPU.registers.PC += 2
-        return immed
+        return (UInt16(h) << 8) | UInt16(l)
     }
 
 
@@ -604,6 +605,11 @@ class CPU {
 
 func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
     //var execution: ()->()
+    // set execution
+    // return {
+    //      debug code
+    //      execution()
+    // }
     switch operation {
     case .NOOP:
         return {}
@@ -879,8 +885,18 @@ func I(operation: InstType, dest: Argument?, source: Argument?) -> ()->() {
         }
         
     case .BIT:
+        guard case .Number(let a)? = dest else { fatalError() }
+        var bit: (UInt8) -> (UInt8) = { b in
+            let bit: UInt8 = 0x01 << a
+            CPU.registers.flags.zero = (b & a) > 0
+            CPU.registers.flags.halfCarry = true
+            CPU.registers.flags.zero = false
+            return b
+        }
+        return generateUnaryOp8(bit, dest!)
+    case .DI:
         return {
-            
+            // disable interrupts
         }
     default:
         return { fatalError("Unimplemented operation!") }
@@ -937,9 +953,15 @@ func generateJump(_ operation: InstType, _ arg1: Argument, _ arg2: Argument?) ->
             }
         } else {
             return {
-                let a = Int8(bitPattern: CPU.readByteImmediate())
-                let result = Int16(bitPattern: CPU.registers.PC) + Int16(a)
-                CPU.registers.PC = UInt16(bitPattern: result)
+                if condition() {
+                    let a = CPU.readByteImmediate()
+                    let neg = a & 0x80 > 0
+                    let result = CPU.registers.PC + (UInt16(a) | (neg ? 0xFF00 : 0x0000))
+                    CPU.registers.PC = result
+                } else {
+                    CPU.registers.PC += 1
+                }
+                
             }
         }
     } else {

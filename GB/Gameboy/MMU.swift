@@ -42,11 +42,63 @@ class MMU {
     
     var bank0: Data = Data(repeating: 0, count: 0x4000)
     var bank1: Data = Data(repeating: 0, count: 0x4000)
-    var vram: Data = Data(repeating: 0, count: 0x2000) // this should be removed, vram should be part of the GPU
-    var wram: Data = Data(repeating: 0, count: 0x2000)
+    
     var externRAM: UnsafeMutablePointer<Data>?
     var iram: Data = Data(repeating: 0, count: 0x80)
+
+    
+
+    // MARK: FLAGS/REGISTERS
+    
+    static var scrollY: UInt8 = 0
+    static var scrollX: UInt8 = 0
+    static var LCDCy_coordinate: UInt8 = 0 // page 55
+    static var LY_Compare: UInt8 = 0 // page 55
+    
     var interruptEnable: Bool = false
+    struct InterruptEnable {
+        static var verticalBlanking = false
+        static var LCDC = false
+        static var timerOverflow = false
+        static var serialTransferCompletion = false
+        static var P_10_13_term_neg_edge = false
+    }
+    
+    struct InputOutputPorts {
+        static var P10 = false
+        static var P11 = false
+        static var P12 = false
+        static var P13 = false
+        static var P14 = false
+        static var P15 = false
+    }
+    
+    static var DMA: UInt8 {
+        set {
+            // begin DMA transfer
+        }
+        get {
+            fatalError()
+        }
+    }
+    
+    static var DMAinProgress: Bool = false
+    
+    static var HDMA5: UInt8 {
+        set {
+            let addr = HDMA5 & 0x7F
+        }
+        
+        get {
+            return DMAinProgress ? 0x00 : 0x80
+        }
+    }
+    
+    static var BCPS: UInt8 = 0
+    static var BCPD: UInt8 = 0
+    static var OCPS: UInt8 = 0
+    static var OCPD: UInt8 = 0
+    
     
     subscript(index: UInt16) -> UInt8 {
         get {
@@ -64,58 +116,104 @@ class MMU {
                 
             case 0x8...0x9:
                 return MMU.activeVRAMbank.pointee[index & 0x1FFF]
-            case 0xA...0xB:
+            case 0xA:
+                fallthrough
+            case 0xB:
                 // TODO: implement external RAM
                 return externRAM!.pointee[Int(index)]
             case 0xC:
                 return MMU.WRAMbanks[0][index & 0x0FFF]
             case 0xD:
                 return MMU.activeWRAMbank.pointee[index & 0x0FFF]
+            case 0xE:
+                fatalError()
+            case 0xF:
                 
-            case 0xE...0xF:
-                if (index < 0xFE00) {
-                    return wram[index & 0x1FFF]
-                } else {
-                    switch(index) {
-                    case 0xFE00..<0xFF00:
-                        // TODO: this holds sprite information
-                        break
-                    case 0xFF00:
-                        // input/output ports
-                        break
-                    case 0xFF01:
-                        // serial cable communications p 28
-                        break
-                    case 0xFF02:
-                        break
-                    case 0xFF05...0xFF07:
-                        // timer registers p 25
-                        break
-                
-                    case 0xFF0F:
-                        // interrupt flags p 26
-                        break
-                    case 0xFF40:
-                        // LCDC register
-                        break
-                    case 0xFF4D:
-                        // cpu speed switching
-                        break
-                    case 0xFF56:
-                        // IR communication
-                        break
-                    case 0xFF80..<0xFFFF:
-                        return iram[index & 0x007F]
-                    case 0xFFFF:
-                        return interruptEnable ? 1 : 0
-                    default:
-                        return 0
-                    }
+                switch(index) {
+                case 0xFE00..<0xFEA0:
+                    // TODO: this holds sprite information
+                    break
+                case 0xFF00:
+                    // input/output ports
+                    break
+                case 0xFF01:
+                    // serial cable communications p 28
+                    break
+                case 0xFF02:
+                    // serial cable communications p 28
+                    break
+                case 0xFF04:
+                    // divider p 24
+                    break
+                case 0xFF05...0xFF07:
+                    // timer registers p 25
+                    break
+            
+                case 0xFF0F:
+                    // interrupt flags p 26
+                    break
+                case 0xFF40:
+                    // LCDC register
+                    // page 54
+                    break
+                case 0xFF41:
+                    // LCDC status flag
+                    // page 55
+                    break
+                case 0xFF42:
+                    // scroll Y
+                    return MMU.scrollY
+
+                case 0xFF43:
+                    // scroll X
+                    return MMU.scrollX
+
+                case 0xFF44:
+                    // LCDC y-coordinate, read only
+                    return MMU.LCDCy_coordinate
+                case 0xFF4F:
+                    // vram bank switching getter
+                    break
+                case 0xFF45:
+                    return MMU.LY_Compare
+                case 0xFF4D:
+                    // cpu speed switching p 34
+                    break
+                case 0xFF55:
+                    // Transfer start and number of bytes to transfer
+                    break
+                case 0xFF56:
+                    // IR communication
+                    break
+                case 0xFF68:
+                    // specifices a bg write
+                    break
+                case 0xFF69:
+                    // bg write data
+                    break
+                case 0xFF6A:
+                    // specifies the obj write data
+                    break
+                case 0xFF6B:
+                    // obj write data
+                    break
+                case 0xFF70:
+                    // working ram bank switching page 34
+                    break
+                case 0xFF80..<0xFFFF:
+                    return iram[index & 0x007F]
+                case 0xFFFF:
+                    return interruptEnable ? 1 : 0
+                default:
+                    return 0
                 }
+                
             default:
                 // this should never execute
                 return 1
             }
+            
+            fatalError()
         }
         
         set {
@@ -137,18 +235,60 @@ class MMU {
                 // TODO: implement external RAM
                 print("unimplemented")
             case 12...13:
-                wram[index & 0x1FFF] = newValue
-            case 14...15:
+                //wram[index & 0x1FFF] = newValue
+                break
+            case 0xE...0xF:
                 if (index < 0xFE00) {
-                    wram[index & 0x1FFF] = newValue
+                    //wram[index & 0x1FFF] = newValue
+                    break
                 } else {
                     switch(index) {
                     case 0xFE00..<0xFF00:
                         // TODO: this holds sprite information
                         fallthrough
-                    case 0xFF70:
-                        let bank = newValue == 0 ? 1 : newValue
-                        MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
+                    case 0xFF01:
+                        // serial transfer data
+                        // page 28
+                        break
+                    case 0xFF02:
+                        // serial transfer control register
+                        // p28
+                        break
+                    case 0xFF04:
+                        // divider p 24
+                        break
+                    case 0xFF05...0xFF07:
+                        // timer registers p 25
+                        break
+                    case 0xFF0F:
+                        // interrupt request
+                        break
+                    case 0xFF40:
+                        // LCDC register
+                        // page 54
+                        break
+                    case 0xFF41:
+                        // LCDC status flag
+                        // page 55
+                        break
+                    case 0xFF42:
+                        // scroll Y
+                        MMU.scrollY = newValue
+
+                    case 0xFF43:
+                        // scroll X
+                        MMU.scrollX = newValue
+                    case 0xFF45:
+                        MMU.LY_Compare = newValue
+                    case 0xFF46:
+                        // DMA transfer and starting address page 62
+                        break
+                    case 0xFF47:
+                        //Transfer start and number of bytes to transfer page 63
+                        break
+                    case 0xFF55:
+                        // Transfer start and number of bytes to transfer
+                        break
                     case 0xFF4D:
                         // cpu speed switching
                         break
@@ -156,6 +296,21 @@ class MMU {
                         // vram bank switching
                         MMU.activeVRAMbank = withUnsafeMutablePointer(to: &MMU.VRAMbanks[newValue], {$0})
                         break
+                    case 0xFF68:
+                        // specifices a bg write
+                        break
+                    case 0xFF69:
+                        // bg write data
+                        break
+                    case 0xFF6A:
+                        // specifies the obj write data
+                        break
+                    case 0xFF6B:
+                        // obj write data
+                        break
+                    case 0xFF70:
+                        let bank = newValue == 0 ? 1 : newValue
+                        MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
                     case 0xFF80..<0xFFFF:
                         iram[index & 0x007F] = newValue
                     case 0xFFFF:
@@ -173,7 +328,7 @@ class MMU {
         }
     }
     
-    func fetchWord(at index: UInt16) -> UInt16 {
+    /*func fetchWord(at index: UInt16) -> UInt16 {
         switch(index & 0xF000) {
         case 0:
             if(bios_mode) {
@@ -227,7 +382,7 @@ class MMU {
             // this should never execute
             return 1
         }
-    }
+    }*/
 }
 
 extension Array {
