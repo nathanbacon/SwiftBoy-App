@@ -20,6 +20,7 @@
 		75A58D8E20A4D92D00CB2DD2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8D20A4D92D00CB2DD2 /* Assets.xcassets */; };
 		75A58D9120A4D92D00CB2DD2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8F20A4D92D00CB2DD2 /* LaunchScreen.storyboard */; };
 		75A58D9920A4D94100CB2DD2 /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A58D9820A4D94100CB2DD2 /* CPU.swift */; };
+		75D0BD712101BAE60004BA8E /* GPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D0BD702101BAE60004BA8E /* GPU.swift */; };
 		75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D44C6720EA062A00AFF9C2 /* Registers.swift */; };
 /* End PBXBuildFile section */
 
@@ -39,6 +40,7 @@
 		75A58D9020A4D92D00CB2DD2 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		75A58D9220A4D92D00CB2DD2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		75A58D9820A4D94100CB2DD2 /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
+		75D0BD702101BAE60004BA8E /* GPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPU.swift; sourceTree = "<group>"; };
 		75D44C6720EA062A00AFF9C2 /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -60,6 +62,7 @@
 				75D44C6720EA062A00AFF9C2 /* Registers.swift */,
 				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
+				75D0BD702101BAE60004BA8E /* GPU.swift */,
 				7544618620FB0FBF002C3687 /* Cartridge.swift */,
 				754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */,
 				7544618820FB1883002C3687 /* pokemon_blue.gb */,
@@ -178,6 +181,7 @@
 				754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */,
 				7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */,
 				75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */,
+				75D0BD712101BAE60004BA8E /* GPU.swift in Sources */,
 				754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */,
 				75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */,
 				754BA1D820B5EEBF00858222 /* GameBoy.swift in Sources */,

@@ -155,29 +155,30 @@ class MMU {
                 case 0xFF40:
                     // LCDC register
                     // page 54
-                    break
+                    return GPU.LCDC.value
                 case 0xFF41:
                     // LCDC status flag
                     // page 55
-                    break
+                    return GPU.STAT.value
                 case 0xFF42:
                     // scroll Y
-                    return MMU.scrollY
+                    return GPU.scrollY
 
                 case 0xFF43:
                     // scroll X
-                    return MMU.scrollX
+                    return GPU.scrollX
 
                 case 0xFF44:
                     // LCDC y-coordinate, read only
-                    return MMU.LCDCy_coordinate
-                case 0xFF4F:
-                    // vram bank switching getter
-                    break
+                    return GPU.currentLineRegister
+                
                 case 0xFF45:
-                    return MMU.LY_Compare
+                    return GPU.LYC
                 case 0xFF4D:
                     // cpu speed switching p 34
+                    break
+                case 0xFF4F:
+                    // vram bank switching getter
                     break
                 case 0xFF55:
                     // Transfer start and number of bytes to transfer
@@ -266,20 +267,23 @@ class MMU {
                     case 0xFF40:
                         // LCDC register
                         // page 54
+                        GPU.LCDC.value = newValue
                         break
                     case 0xFF41:
                         // LCDC status flag
                         // page 55
-                        break
+                        GPU.STAT.value = newValue
                     case 0xFF42:
                         // scroll Y
-                        MMU.scrollY = newValue
+                        GPU.scrollY = newValue
 
                     case 0xFF43:
                         // scroll X
-                        MMU.scrollX = newValue
+                        GPU.scrollX = newValue
+                    case 0xFF44:
+                        GPU.currentLineRegister = newValue
                     case 0xFF45:
-                        MMU.LY_Compare = newValue
+                        GPU.LYC = newValue
                     case 0xFF46:
                         // DMA transfer and starting address page 62
                         break

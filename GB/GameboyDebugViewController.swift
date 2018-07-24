@@ -15,6 +15,7 @@ class GameboyDebugViewController: UITableViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.delegate = self
+        gameboy.runLoop()
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
 

@@ -21,13 +21,15 @@ struct GameBoy {
     }
     
     func runLoop() {
-        while true {
-            CPU.execNextInstruction()
+        while GPU.currentLineRegister < 145 {
+            let cycles = CPU.execNextInstruction()
+            GPU.updateGraphics(cycles: cycles)
         }
     }
     
     func execInstruc() {
-        CPU.execNextInstruction()
+        let cycles = CPU.execNextInstruction()
+        GPU.updateGraphics(cycles: cycles)
     }
     
 
