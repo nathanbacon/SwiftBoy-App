@@ -7,10 +7,13 @@
 //
 
 import Foundation
+import GLKit
 
 struct GPU {
     
-    static var screenData = Data(repeating: 0, count: 160*144)
+    static var gpu = GPU()
+    
+    static var screenData = Array<(red: UInt8, green: UInt8, blue: UInt8)>(repeating: (0,0,0), count: 160*144)
     
     static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
     static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
@@ -112,17 +115,18 @@ struct GPU {
                     case .HBlank:
                         // request interrupt
                         if IntHBlank {
-                            
+                            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
                         }
                         break
                     case .VBlank:
                         if IntVBlank {
-                            
+                            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
+
                         }
                         break
                     case .searchSprite:
                         if IntSearchSprite {
-                            
+                            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
                         }
                         break
                     case .dataTransfer:
@@ -187,7 +191,7 @@ struct GPU {
         }
         
         if STAT.IntCoincidence && STAT.coincidenceFlag {
-            // request interrupt
+            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
         }
     }
     
@@ -205,18 +209,18 @@ struct GPU {
             
             scanLineCycles = 0
             if currentLine == 144 {
-                // request interrupt
+                CPU.requestInterrupt(for: CPU.Interrupt.VBlank)
             } else if currentLine > 153 {
                 currentLine = 0
             } else if currentLine < 144 {
-                // draw scan line
+                drawScanLine()
             }
         }
     }
     
     static func drawScanLine() {
         if LCDC.BGDisplay {
-            // render tiles
+            renderTiles()
         }
         
         if LCDC.spriteDisplay {
@@ -260,9 +264,9 @@ struct GPU {
             let xPos = UInt16(usingWindow && pixel >= windowX ? pixel - windowX : pixel + scrollX)
             
             let tileCol = xPos / 8
-            let tileNum = activeVRAMbank.pointee[(backgroundMemory + tileRow + tileCol)]
+            let tileNum = UInt16(activeVRAMbank.pointee[(backgroundMemory + tileRow + tileCol)])
             
-            let tileLocation = tileData + UInt16(unsig ? (tileNum * 16) : (tileNum + 128) * 16 )
+            let tileLocation = tileData + UInt16(unsig ? (tileNum * 16) : ((tileNum + 128) * 16) )
             
             let lData = vram[tileLocation + lineInTile]
             let hData = vram[tileLocation + lineInTile + 1]
@@ -271,6 +275,8 @@ struct GPU {
             let colorSelector: UInt8 = 0x80 >> (pixel % 8)
             let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00 | (colorSelector & lData) > 0 ? 0b01 : 0b00)
             let color = getColor(from: shade)
+            
+            screenData[UInt16(currentLine) + UInt16(pixel)] = color
         }
         
     }

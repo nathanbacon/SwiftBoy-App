@@ -14,6 +14,8 @@
 		754BA1D820B5EEBF00858222 /* GameBoy.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754BA1D720B5EEBF00858222 /* GameBoy.swift */; };
 		754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */; };
 		754DFF7320B3DECB00B3CDA3 /* MMU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754DFF7220B3DECB00B3CDA3 /* MMU.swift */; };
+		754EA5DD21087F00005848D3 /* GameboyDebugger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 754EA5DC21087F00005848D3 /* GameboyDebugger.swift */; };
+		755F62AF210C78BD00530AD8 /* Timer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 755F62AE210C78BD00530AD8 /* Timer.swift */; };
 		7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7590371320FC324D0065F70A /* GameboyDebugViewController.swift */; };
 		75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */; };
 		75A58D8C20A4D92D00CB2DD2 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8A20A4D92D00CB2DD2 /* Main.storyboard */; };
@@ -32,6 +34,8 @@
 		754BA1D720B5EEBF00858222 /* GameBoy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameBoy.swift; sourceTree = "<group>"; };
 		754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Instruction.swift; sourceTree = "<group>"; };
 		754DFF7220B3DECB00B3CDA3 /* MMU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MMU.swift; sourceTree = "<group>"; };
+		754EA5DC21087F00005848D3 /* GameboyDebugger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameboyDebugger.swift; sourceTree = "<group>"; };
+		755F62AE210C78BD00530AD8 /* Timer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Timer.swift; sourceTree = "<group>"; };
 		7590371320FC324D0065F70A /* GameboyDebugViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameboyDebugViewController.swift; sourceTree = "<group>"; };
 		75A58D8320A4D92D00CB2DD2 /* GB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -59,6 +63,7 @@
 			isa = PBXGroup;
 			children = (
 				75A58D9820A4D94100CB2DD2 /* CPU.swift */,
+				755F62AE210C78BD00530AD8 /* Timer.swift */,
 				75D44C6720EA062A00AFF9C2 /* Registers.swift */,
 				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
@@ -92,6 +97,7 @@
 			children = (
 				754BA1D020B543CB00858222 /* GameBoyViewController.swift */,
 				7590371320FC324D0065F70A /* GameboyDebugViewController.swift */,
+				754EA5DC21087F00005848D3 /* GameboyDebugger.swift */,
 				754BA1D220B5452900858222 /* Gameboy */,
 				75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */,
 				75A58D8A20A4D92D00CB2DD2 /* Main.storyboard */,
@@ -179,8 +185,10 @@
 				754DFF7320B3DECB00B3CDA3 /* MMU.swift in Sources */,
 				7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */,
 				754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */,
+				755F62AF210C78BD00530AD8 /* Timer.swift in Sources */,
 				7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */,
 				75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */,
+				754EA5DD21087F00005848D3 /* GameboyDebugger.swift in Sources */,
 				75D0BD712101BAE60004BA8E /* GPU.swift in Sources */,
 				754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */,
 				75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */,
@@ -266,6 +274,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_COMPILATION_MODE = singlefile;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;

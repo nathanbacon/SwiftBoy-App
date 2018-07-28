@@ -21,7 +21,8 @@ struct GameBoy {
     }
     
     func runLoop() {
-        while GPU.currentLineRegister < 145 {
+        CPU.startTime = CFAbsoluteTimeGetCurrent()
+        while true {
             let cycles = CPU.execNextInstruction()
             GPU.updateGraphics(cycles: cycles)
         }
@@ -30,6 +31,13 @@ struct GameBoy {
     func execInstruc() {
         let cycles = CPU.execNextInstruction()
         GPU.updateGraphics(cycles: cycles)
+    }
+    
+    func continueExecution(to pc: UInt16) {
+        CPU.startTime = CFAbsoluteTimeGetCurrent()
+        while CPU.registers.PC != pc {
+            execInstruc()
+        }
     }
     
 

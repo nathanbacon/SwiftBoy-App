@@ -32,7 +32,7 @@ class GameboyDebugViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of rows
-        return 2
+        return 5
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -42,6 +42,12 @@ class GameboyDebugViewController: UITableViewController {
             cell.textLabel?.text = "PC: \(String(CPU.registers.PC, radix: 16))"
         case 1:
             cell.textLabel?.text = "A \(String(format: "%02X",CPU.registers.A))"
+        case 2:
+            cell.textLabel?.text = "B \(String(format: "%02X",CPU.registers.B))"
+        case 3:
+            cell.textLabel?.text = "C \(String(format: "%02X",CPU.registers.C))"
+        case 4:
+            cell.textLabel?.text = "SP \(String(CPU.registers.SP, radix: 16))"
         default:
             cell.textLabel?.text = "meow"
         }

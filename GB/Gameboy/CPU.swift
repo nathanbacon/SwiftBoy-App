@@ -26,15 +26,56 @@ class CPU {
     
     static var interruptEnable = false
     
-    static var debugMode = false
+    static var debugMode = true
+    static var prevInstruction = ""
+    static var totalInstructions = 0
+    static var startTime: CFAbsoluteTime = CFAbsoluteTimeGetCurrent()
+    
+    static var isHalted = false
     
     private init() {
         
     }
     
     static func execNextInstruction() -> UInt {
-        CPU.fetchInstruction()()
-        return prevInstCycles
+        
+        if CPU.isHalted {
+            return 4
+        } else {
+            CPU.fetchInstruction()()
+            totalInstructions += 1
+            return prevInstCycles
+        }
+        
+    }
+    
+    enum Interrupt {
+        case VBlank
+        case LCD
+        case Timer
+        case Joypad
+        
+        static var VBlankRequested = false
+        static var LCDRequested = false
+        static var TimerRequested = false
+        static var JoypadRequested = false
+    }
+    
+    static func requestInterrupt(for interrupt: Interrupt) {
+        switch interrupt {
+        case .VBlank:
+            Interrupt.VBlankRequested = true
+        case .LCD:
+            Interrupt.LCDRequested = true
+        case .Timer:
+            Interrupt.TimerRequested = true
+        case .Joypad:
+            Interrupt.JoypadRequested = true
+        }
+    }
+    
+    static func serviceInterrupts() {
+        
     }
     
     static let basicTable: Array<()->()> = [
@@ -611,7 +652,7 @@ class CPU {
 }
 
 func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
-    let execution: (()->())?
+    let exec: (()->())?
     // set execution
     // return {
     //      debug code
@@ -619,15 +660,15 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
     // }
     switch operation {
     case .NOOP:
-        return { CPU.prevInstCycles += 4 }
+        exec = { CPU.prevInstCycles += 4 }
     case .STOP:
-        return { CPU.prevInstCycles += 4;fatalError() }
+        exec = { CPU.prevInstCycles += 4;fatalError() }
     case .LDH:
         fallthrough
     case .LD8:
-        return generateBinOp8({$1}, arg1!, arg2!)
+        exec = generateBinOp8({$1}, arg1!, arg2!)
     case .LD16:
-        return generateBinOp16({$1}, arg1!, arg2!)
+        exec = generateBinOp16({$1}, arg1!, arg2!)
     case .INC8:
         let adder: (UInt8) -> UInt8 = { b in
             CPU.registers.flags.halfCarry = b & 0b1111 == 0b1111 // will only be a half carry if this value is 0b1111
@@ -636,27 +677,27 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.zero = c == 0
             return c
         }
-        return generateUnaryOp8(adder, arg1!)
+        exec = generateUnaryOp8(adder, arg1!)
     case .INC16:
         let adder: (UInt16) -> UInt16 = { b in
             return b &+ 1
         }
-        return generateUnaryOp16(adder, arg1!)
+        exec = generateUnaryOp16(adder, arg1!)
     case .DEC8:
         let decrementer: (UInt8) -> UInt8 = { b in
-            CPU.registers.flags.halfCarry = b & 0b0000 == 0b0000
+            CPU.registers.flags.halfCarry = b & 0xF == 0
             CPU.registers.flags.subtract = true
             
             let c = b &- 1
             CPU.registers.flags.zero = c == 0
             return c
         }
-        return generateUnaryOp8(decrementer, arg1!)
+        exec = generateUnaryOp8(decrementer, arg1!)
     case .DEC16:
         let decrementer: (UInt16) -> (UInt16) = { b in
             return b &- 1
         }
-        return generateUnaryOp16(decrementer, arg1!)
+        exec = generateUnaryOp16(decrementer, arg1!)
     case .ADD8:
         let adder: (UInt8, UInt8) -> UInt8 = { a, b in
             // it's not necessary to even convert to integer for arithmetic, the binary will be the same,
@@ -669,7 +710,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.zero = c.partialValue == 0
             return c.partialValue
         }
-        return generateBinOp8(adder, arg1!, arg2!)
+        exec = generateBinOp8(adder, arg1!, arg2!)
     case .ADD16:
         let adder: (UInt16, UInt16) -> UInt16 = { a, b in
             let c = a.addingReportingOverflow(b)
@@ -679,7 +720,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.subtract = false
             return c.partialValue
         }
-        return generateBinOp16(adder, arg1!, arg2!)
+        exec = generateBinOp16(adder, arg1!, arg2!)
     case .ADC:
         let adder: (UInt8, UInt8) -> UInt8 = { a, b in
             let carry: UInt8 = CPU.registers.flags.carry ? 1 : 0
@@ -690,7 +731,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.zero = c.partialValue == 0
             return c.partialValue
         }
-        return generateBinOp8(adder, arg1!, arg2!)
+        exec = generateBinOp8(adder, arg1!, arg2!)
     case .SBC:
         let subtracter: (UInt8, UInt8) -> UInt8 = { a, b in
             let carry: UInt8 = CPU.registers.flags.carry ? 1 : 0
@@ -701,7 +742,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.zero = c.partialValue == 0
             return c.partialValue
         }
-        return generateBinOp8(subtracter, arg1!, arg2!)
+        exec = generateBinOp8(subtracter, arg1!, arg2!)
     case .SUB:
         let subtracter: (UInt8, UInt8) -> UInt8 = { a, b in
             let c = a.subtractingReportingOverflow(b)
@@ -714,7 +755,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.zero = c.partialValue == 0
             return c.partialValue
         }
-        return generateBinOp8(subtracter, .A, arg1!) // even though SUB B is unary, it has the semantic of binary with A as the default
+        exec = generateBinOp8(subtracter, .A, arg1!) // even though SUB B is unary, it has the semantic of binary with A as the default
     case .AND:
         let and: (UInt8, UInt8) -> UInt8 = { a, b in
             let c = CPU.registers.A & b
@@ -724,7 +765,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.subtract = false
             return c
         }
-        return generateBinOp8(and, .A, arg1!)
+        exec = generateBinOp8(and, .A, arg1!)
     case .OR:
         let or: (UInt8, UInt8) -> UInt8 = { a, b in
             let c = CPU.registers.A | b
@@ -734,7 +775,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.subtract = false
             return c
         }
-        return generateBinOp8(or, .A, arg1!)
+        exec = generateBinOp8(or, .A, arg1!)
     case .XOR:
         let xor: (UInt8, UInt8) -> UInt8 = { a, b in
             let c = CPU.registers.A ^ b
@@ -744,7 +785,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.subtract = false
             return c
         }
-        return generateBinOp8(xor, .A, arg1!)
+        exec = generateBinOp8(xor, .A, arg1!)
     case .CP:
         let cp: (UInt8, UInt8) -> UInt8 = { a, b in
             CPU.registers.flags.zero = a == b
@@ -753,39 +794,47 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.subtract = true
             return a
         }
-        return generateBinOp8(cp, .A, arg1!)
+        exec = generateBinOp8(cp, .A, arg1!)
     case .SWAP:
         let swap: (UInt8) -> UInt8 = { a in
             let l = a & 0x0F
             let h = a & 0xF0
             return (l << 4) | (h >> 4)
         }
-        return generateUnaryOp8(swap, arg1!)
+        exec = generateUnaryOp8(swap, arg1!)
     case .RLCA:
-        return {
+        exec = {
             CPU.registers.flags.carry = (0b10000000 & CPU.registers.A) > 0
             CPU.registers.A <<= 1
             if CPU.registers.flags.carry {
                 CPU.registers.A |= 1
             }
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
         }
     case .RRCA:
-        return {
+        exec = {
             CPU.registers.flags.carry = (0b00000001 & CPU.registers.A) > 0
             CPU.registers.A <<= 1
             if CPU.registers.flags.carry {
                 CPU.registers.A |= 0b10000000
             }
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
         }
     case .RRA:
-        return {
+        exec = {
             CPU.registers.flags.carry = (0b00000001 & CPU.registers.A) > 0
             CPU.registers.A >>= 1
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
         }
     case .RLA:
-        return {
+        exec = {
             CPU.registers.flags.carry = (0b10000000 & CPU.registers.A) > 0
             CPU.registers.A <<= 1
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
         }
     case .RLC:
         let rotateLeft: (UInt8) -> UInt8 = { a in
@@ -793,18 +842,30 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             if CPU.registers.flags.carry {
                 CPU.registers.A |= 0x80
             }
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
             return a << 1
         }
-        return generateUnaryOp8(rotateLeft, arg1!)
+        exec = generateUnaryOp8(rotateLeft, arg1!)
+    case .RR:
+        let rotateRight: (UInt8) -> UInt8 = { a in
+            let carry: UInt8 = CPU.registers.flags.carry ? 0x80 : 0x00
+            CPU.registers.flags.carry = (0x01 & a) > 0
+            CPU.registers.flags.zero = a == 0x01
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
+            return (a >> 1) | carry
+        }
+        exec = generateUnaryOp8(rotateRight, arg1!)
     case .POP:
         let pop: (UInt16) -> UInt16 = { _ in
             let l = CPU.mmu[CPU.registers.SP]
             CPU.registers.SP += 1
             let h = CPU.mmu[CPU.registers.SP]
             CPU.registers.SP += 1
-            return UInt16(h) << 8 | UInt16(l)
+            return (UInt16(h) << 8) | UInt16(l)
         }
-        return generateUnaryOp16(pop, arg1!)
+        exec = generateUnaryOp16(pop, arg1!)
     case .PUSH:
         let push: (UInt16) -> UInt16 = { a in
             CPU.registers.SP -= 1
@@ -814,20 +875,22 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             return a
         }
         
-        return generateUnaryOp16(push, arg1!)
+        exec = generateUnaryOp16(push, arg1!)
     case .CPL:
-        return {
+        exec = {
+            CPU.registers.flags.subtract = true
+            CPU.registers.flags.halfCarry = true
             CPU.registers.A = ~CPU.registers.A
         }
     case .RST:
         guard case .Number(let addr)? = arg1 else { fatalError() }
-        return {
+        exec = {
             pushPC()
             CPU.registers.PC = UInt16(addr)
         }
     case .CALL:
         if case .Immed16? = arg1 {
-            return {
+            exec = {
                 let i = CPU.readWordImmediate()
                 pushPC()
                 CPU.registers.PC = i
@@ -847,7 +910,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
                 condition = { fatalError() }
             }
             
-            return {
+            exec = {
                 let i = CPU.readWordImmediate()
                 if condition() {
                     pushPC()
@@ -871,21 +934,21 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
                 condition = { fatalError() }
             }
             
-            return {
+            exec = {
                 if condition() {
                     popPC()
                 }
             }
         } else {
-            return popPC
+            exec = popPC
         }
     case .JP:
         fallthrough
     case .JR:
         
-        return generateJump(operation, arg1!, arg2)
+        exec = generateJump(operation, arg1!, arg2)
     case .PREFIX:
-        return {
+        exec = {
             let opcode = CPU.mmu[CPU.registers.PC]
             CPU.registers.PC += 1
             CPU.prefixTable[opcode]()
@@ -895,43 +958,50 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         guard case .Number(let a)? = arg1 else { fatalError() }
         let bit: (UInt8) -> (UInt8) = { b in
             let bitSelect: UInt8 = 0x01 << a
-            CPU.registers.flags.zero = (b & bitSelect) > 0
+            CPU.registers.flags.zero = (b & bitSelect) == 0
             CPU.registers.flags.halfCarry = true
-            CPU.registers.flags.zero = false
+            CPU.registers.flags.subtract = false
             return b
         }
-        execution = generateUnaryOp8(bit, arg2!)
+        exec = generateUnaryOp8(bit, arg2!)
     case .RES:
         guard case .Number(let a)? = arg1 else { fatalError() }
         let res: (UInt8) -> (UInt8) = { b in
             let bitSelect: UInt8 = (0x01 << a) ^ 0xFF
             return b & bitSelect
         }
-        execution = generateUnaryOp8(res, arg2!)
+        exec = generateUnaryOp8(res, arg2!)
     case .SET:
         guard case .Number(let a)? = arg1 else { fatalError() }
         let set: (UInt8) -> (UInt8) = { b in
             let bitSelect: UInt8 = (0x01 << a)
             return b | bitSelect
         }
-        execution = generateUnaryOp8(set, arg2!)
+        exec = generateUnaryOp8(set, arg2!)
     case .DI:
         return {
             CPU.interruptEnable = false
         }
     case .EI:
-        execution = {
+        exec = {
             CPU.interruptEnable = true
         }
+    case .HALT:
+        exec = {
+            CPU.isHalted = true
+        }
     default:
-        return { fatalError("Unimplemented operation!") }
+        exec = {
+            fatalError("Unimplemented operation! \(operation) \(arg1) \(arg2)")
+        }
     }
     if CPU.debugMode {
         return {
-            (execution ?? { fatalError() })()
+            CPU.prevInstruction = "\(String(describing: operation)) \(arg1 != nil ? String(describing: arg1!) : "") \(arg2 != nil ? String(describing: arg2!) : "")"
+            (exec ?? { fatalError() })()
         }
     } else {
-        return execution ?? { fatalError() }
+        return exec ?? { fatalError() }
     }
     
 }
@@ -968,8 +1038,58 @@ func generateJump(_ operation: InstType, _ arg1: Argument, _ arg2: Argument?) ->
         condition = nil
     }
     
-    
     if let condition = condition {
+        if case .JP = operation {
+            return {
+                if condition() {
+                    CPU.prevInstCycles = 16
+                    CPU.registers.PC = CPU.readWordImmediate()
+                } else {
+                    CPU.registers.PC += 2
+                    CPU.prevInstCycles = 12
+                }
+            }
+        } else {
+            return {
+                if condition() {
+                    let a = CPU.readByteImmediate()
+                    let neg = a & 0x80 > 0
+                    let result = CPU.registers.PC &+ (UInt16(a) | (neg ? 0xFF00 : 0x0000))
+                    CPU.registers.PC = result
+                    CPU.prevInstCycles = 12
+                } else {
+                    CPU.registers.PC += 1
+                    CPU.prevInstCycles = 8
+                }
+            }
+        }
+    } else {
+        if case .JP = operation {
+            
+            if case .Mem(.HL) = arg1 {
+                return {
+                    CPU.prevInstCycles = 4
+                    CPU.registers.PC = CPU.registers.HL
+                }
+            } else {
+                return {
+                    CPU.prevInstCycles = 16
+                    CPU.registers.PC = CPU.readWordImmediate()
+                }
+            }
+            
+        } else {
+            return {
+                let a = CPU.readByteImmediate()
+                let neg = a & 0x80 > 0
+                let result = CPU.registers.PC &+ (UInt16(a) | (neg ? 0xFF00 : 0x0000))
+                CPU.registers.PC = result
+                CPU.prevInstCycles = 12
+            }
+        }
+    }
+    
+    /*if let condition = condition {
         guard let arg2 = arg2 else { fatalError() }
         
         if case .Immed16 = arg2 {
@@ -1020,7 +1140,7 @@ func generateJump(_ operation: InstType, _ arg1: Argument, _ arg2: Argument?) ->
                 CPU.prevInstCycles = 12
             }
         }
-     }
+     }*/
     
     
 }
@@ -1102,9 +1222,14 @@ func generateUnaryOp16(_ operation: @escaping (UInt16) -> (UInt16), _ dest: Argu
             CPU.prevInstCycles = 8
             CPU.registers.SP = operation(CPU.registers.SP)
         }
+    case .AF:
+        return {
+            CPU.prevInstCycles = 8
+            CPU.registers.AF = operation(CPU.registers.AF)
+        }
         
     default:
-        return {}
+        return { fatalError() }
     }
 
 }
@@ -1211,7 +1336,7 @@ func generateBinOp8(_ operation :@escaping (UInt8, UInt8)->(UInt8),_ dest: Argum
     case .E:
         return {
             CPU.prevInstCycles = clocks
-            CPU.registers.A = operation(CPU.registers.E, reader())
+            CPU.registers.E = operation(CPU.registers.E, reader())
         }
     case .H:
         return {

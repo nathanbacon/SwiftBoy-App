@@ -99,23 +99,24 @@ class MMU {
     static var OCPS: UInt8 = 0
     static var OCPD: UInt8 = 0
     
+    static var FF00: UInt8 = 0
     
     subscript(index: UInt16) -> UInt8 {
         get {
             switch(index >> 12) {
-            case 0:
+            case 0x0:
                 if(bios_mode) {
-                    guard (index < 0x100) else { assert(false) }
+                    guard (index < 0x100) else { fatalError() }
                     return bios[index]
                 }
                 fallthrough
             case 0x1...0x3:
                 return bank0[index]
             case 0x4...0x7:
-                return bank1[index]
+                return bank1[index & 0x3FFF]
                 
             case 0x8...0x9:
-                return MMU.activeVRAMbank.pointee[index & 0x1FFF]
+                return GPU.gpu[index & 0x1FFF]
             case 0xA:
                 fallthrough
             case 0xB:
@@ -135,7 +136,9 @@ class MMU {
                     break
                 case 0xFF00:
                     // input/output ports
-                    break
+                    // the 4 lsb of this return value should signal that nothing is pressed
+                    return 0xFF
+                    //return MMU.FF00 == 0x30 ? 0xFE : 0xFF
                 case 0xFF01:
                     // serial cable communications p 28
                     break
@@ -145,10 +148,13 @@ class MMU {
                 case 0xFF04:
                     // divider p 24
                     break
-                case 0xFF05...0xFF07:
+                case 0xFF05:
                     // timer registers p 25
-                    break
-            
+                    return Timer.counter
+                case 0xFF06:
+                    return Timer.modulo
+                case 0xFF07:
+                    return Timer.controllerRegister
                 case 0xFF0F:
                     // interrupt flags p 26
                     break
@@ -231,12 +237,15 @@ class MMU {
                 // bottom of p 216 in gbc manual
                 break
             case 8...9:
-                MMU.activeVRAMbank.pointee[index & 0x1FFF] = newValue
-            case 10...11:
+                GPU.gpu[index & 0x1FFF] = newValue
+            case 0xA...0xB:
                 // TODO: implement external RAM
                 print("unimplemented")
-            case 12...13:
+            case 0xC:
+                MMU.WRAMbanks[0][index & 0x0FFF] = newValue
+            case 0xD:
                 //wram[index & 0x1FFF] = newValue
+                MMU.activeWRAMbank.pointee[index & 0x0FFF] = newValue
                 break
             case 0xE...0xF:
                 if (index < 0xFE00) {
@@ -246,7 +255,9 @@ class MMU {
                     switch(index) {
                     case 0xFE00..<0xFF00:
                         // TODO: this holds sprite information
-                        fallthrough
+                        break
+                    case 0xFF00:
+                        MMU.FF00 = newValue
                     case 0xFF01:
                         // serial transfer data
                         // page 28
@@ -258,9 +269,14 @@ class MMU {
                     case 0xFF04:
                         // divider p 24
                         break
-                    case 0xFF05...0xFF07:
+                    case 0xFF05:
                         // timer registers p 25
+                        Timer.counter = newValue
                         break
+                    case 0xFF06:
+                        Timer.modulo = newValue
+                    case 0xFF07:
+                        Timer.controllerRegister = newValue
                     case 0xFF0F:
                         // interrupt request
                         break
@@ -286,6 +302,10 @@ class MMU {
                         GPU.LYC = newValue
                     case 0xFF46:
                         // DMA transfer and starting address page 62
+                        let startAddr = UInt16(newValue) << 8
+                        for (index, addr) in (startAddr..<startAddr+40).enumerated() {
+                            iram[index] = MMU.mmu[addr]
+                        }
                         break
                     case 0xFF47:
                         //Transfer start and number of bytes to transfer page 63

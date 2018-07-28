@@ -16,7 +16,7 @@ struct Cartridge {
     
     init(filename: String) {
 
-        guard let rom = try? Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: filename, ofType: "gb")!)) else { assert(false) }
+        guard let rom = try? Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: filename, ofType: "gb")!)) else { fatalError() }
         
         var memOffset: Int = 0
         var banksTemp: Array<Data> = []
