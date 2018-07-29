@@ -30,8 +30,8 @@ class MMU {
     static var WRAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating:0, count: 0x1000), count: 8)
     static var activeWRAMbank = withUnsafeMutablePointer(to: &WRAMbanks[0], {$0})
     
-    static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
-    static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
+    //static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
+    //static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
     
     var cartridge_type: CartridgeType = .ROM_only
     
@@ -46,16 +46,8 @@ class MMU {
     var externRAM: UnsafeMutablePointer<Data>?
     var iram: Data = Data(repeating: 0, count: 0x80)
 
-    
-
     // MARK: FLAGS/REGISTERS
     
-    static var scrollY: UInt8 = 0
-    static var scrollX: UInt8 = 0
-    static var LCDCy_coordinate: UInt8 = 0 // page 55
-    static var LY_Compare: UInt8 = 0 // page 55
-    
-    var interruptEnable: Bool = false
     struct InterruptEnable {
         static var verticalBlanking = false
         static var LCDC = false
@@ -86,7 +78,7 @@ class MMU {
     
     static var HDMA5: UInt8 {
         set {
-            let addr = HDMA5 & 0x7F
+            //let addr = HDMA5 & 0x7F
         }
         
         get {
@@ -121,7 +113,7 @@ class MMU {
                 fallthrough
             case 0xB:
                 // TODO: implement external RAM
-                return externRAM!.pointee[Int(index)]
+                return externRAM!.pointee[Int(index & 0x1FFF)]
             case 0xC:
                 return MMU.WRAMbanks[0][index & 0x0FFF]
             case 0xD:
@@ -133,7 +125,8 @@ class MMU {
                 switch(index) {
                 case 0xFE00..<0xFEA0:
                     // TODO: this holds sprite information
-                    break
+                    return GPU.OAM[index & 0xA0]
+
                 case 0xFF00:
                     // input/output ports
                     // the 4 lsb of this return value should signal that nothing is pressed
@@ -147,7 +140,7 @@ class MMU {
                     break
                 case 0xFF04:
                     // divider p 24
-                    break
+                    return Timer.divider
                 case 0xFF05:
                     // timer registers p 25
                     return Timer.counter
@@ -157,7 +150,7 @@ class MMU {
                     return Timer.controllerRegister
                 case 0xFF0F:
                     // interrupt flags p 26
-                    break
+                    return CPU.Interrupt.IF
                 case 0xFF40:
                     // LCDC register
                     // page 54
@@ -210,7 +203,7 @@ class MMU {
                 case 0xFF80..<0xFFFF:
                     return iram[index & 0x007F]
                 case 0xFFFF:
-                    return interruptEnable ? 1 : 0
+                    return CPU.Interrupt.IE
                 default:
                     return 0
                 }
@@ -230,17 +223,16 @@ class MMU {
                 // this is a rom bank so we should never write to it
                 bank0[index] = newValue
             case 2...3:
-                bank1 = cartridge!.getROMBank(at: newValue)
+                bank1 = cartridge!.getROMBank(at: newValue & 0x3F)
             case 4...5:
-                externRAM = cartridge!.getRAMBank(at: newValue & 0x000F)
+                externRAM = cartridge!.getRAMBank(at: newValue & 0x0003)
             case 6...7:
                 // bottom of p 216 in gbc manual
                 break
             case 8...9:
                 GPU.gpu[index & 0x1FFF] = newValue
             case 0xA...0xB:
-                // TODO: implement external RAM
-                print("unimplemented")
+                externRAM!.pointee[0x1FFF] = newValue
             case 0xC:
                 MMU.WRAMbanks[0][index & 0x0FFF] = newValue
             case 0xD:
@@ -255,6 +247,7 @@ class MMU {
                     switch(index) {
                     case 0xFE00..<0xFF00:
                         // TODO: this holds sprite information
+                        GPU.OAM[index & 0xA0] = newValue
                         break
                     case 0xFF00:
                         MMU.FF00 = newValue
@@ -268,7 +261,7 @@ class MMU {
                         break
                     case 0xFF04:
                         // divider p 24
-                        break
+                        Timer.divider = 0
                     case 0xFF05:
                         // timer registers p 25
                         Timer.counter = newValue
@@ -279,7 +272,7 @@ class MMU {
                         Timer.controllerRegister = newValue
                     case 0xFF0F:
                         // interrupt request
-                        break
+                        CPU.Interrupt.IF = newValue
                     case 0xFF40:
                         // LCDC register
                         // page 54
@@ -304,21 +297,22 @@ class MMU {
                         // DMA transfer and starting address page 62
                         let startAddr = UInt16(newValue) << 8
                         for (index, addr) in (startAddr..<startAddr+40).enumerated() {
-                            iram[index] = MMU.mmu[addr]
+                            GPU.OAM[index] = MMU.mmu[addr]
                         }
-                        break
                     case 0xFF47:
-                        //Transfer start and number of bytes to transfer page 63
+                        //pallete selector p 57 of dmg manual
                         break
                     case 0xFF55:
                         // Transfer start and number of bytes to transfer
+                        
                         break
                     case 0xFF4D:
                         // cpu speed switching
                         break
                     case 0xFF4F:
                         // vram bank switching
-                        MMU.activeVRAMbank = withUnsafeMutablePointer(to: &MMU.VRAMbanks[newValue], {$0})
+                        // todo let the GPU do bank switching, these should be private
+                        GPU.activeVRAMbank = withUnsafeMutablePointer(to: &GPU.VRAMbanks[newValue], {$0})
                         break
                     case 0xFF68:
                         // specifices a bg write
@@ -338,7 +332,7 @@ class MMU {
                     case 0xFF80..<0xFFFF:
                         iram[index & 0x007F] = newValue
                     case 0xFFFF:
-                        interruptEnable = (newValue == 1)
+                        CPU.Interrupt.IE = newValue
                     default:
                         // this should never execute
                         break

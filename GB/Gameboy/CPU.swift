@@ -24,7 +24,11 @@ class CPU {
     
     static fileprivate var prevInstCycles: UInt = 0
     
-    static var interruptEnable = false
+    static var interruptEnabled = false {
+        didSet {
+            Interrupt.IF = 0x00
+        }
+    }
     
     static var debugMode = true
     static var prevInstruction = ""
@@ -49,35 +53,100 @@ class CPU {
         
     }
     
-    enum Interrupt {
-        case VBlank
-        case LCD
-        case Timer
-        case Joypad
+    enum Interrupt: UInt16 {
+        case VBlank = 0x40
+        case LCD = 0x48
+        case Timer = 0x50
+        //case Serial
+        case Joypad = 0x60
         
         static var VBlankRequested = false
         static var LCDRequested = false
         static var TimerRequested = false
+        static var SerialRequested = false
         static var JoypadRequested = false
-    }
-    
-    static func requestInterrupt(for interrupt: Interrupt) {
-        switch interrupt {
-        case .VBlank:
-            Interrupt.VBlankRequested = true
-        case .LCD:
-            Interrupt.LCDRequested = true
-        case .Timer:
-            Interrupt.TimerRequested = true
-        case .Joypad:
-            Interrupt.JoypadRequested = true
+        
+        static var IF: UInt8 {
+            get {
+                return UInt8(VBlankRequested ? 0x1 : 0x0) |
+                    (LCDRequested ? 0x2 : 0x0) |
+                    (TimerRequested ? 0x4 : 0x0) |
+                    (SerialRequested ? 0x8 : 0x0) |
+                    (JoypadRequested ? 0x10 : 0x0)
+            }
+            set {
+                VBlankRequested = (newValue & 0x1) > 0
+                LCDRequested = (newValue & 0x2) > 0
+                TimerRequested = (newValue & 0x4) > 0
+                SerialRequested = (newValue & 0x8) > 0
+                JoypadRequested = (newValue & 0x10) > 0
+            }
+        }
+        
+        static var VBlankEnabled = false
+        static var LCDEnabled = false
+        static var TimerEnabled = false
+        static var SerialEnabled = false
+        static var JoypadEnabled = false
+        
+        static var IE: UInt8 {
+            get {
+                return UInt8(VBlankEnabled ? 0x1 : 0) |
+                    (LCDEnabled ? 0x2 : 0) |
+                    (TimerEnabled ? 0x4 : 0) |
+                    (SerialEnabled ? 0x8 : 0) |
+                    (JoypadEnabled ? 0x10 : 0)
+            }
+            set {
+                VBlankEnabled = (newValue & 0x1) > 0
+                LCDEnabled = (newValue & 0x2) > 0
+                TimerEnabled = (newValue & 0x4) > 0
+                SerialEnabled = (newValue & 0x8) > 0
+                JoypadEnabled = (newValue & 0x10) > 0
+            }
+        }
+        
+        static func processInterrupts() {
+            if interruptEnabled {
+                if VBlankRequested && VBlankEnabled {
+                    VBlankRequested = false
+                    serviceInterrupt(for: .VBlank)
+                } else if LCDEnabled && LCDRequested {
+                    LCDRequested = false
+                    serviceInterrupt(for: .LCD)
+                } else if TimerEnabled && TimerRequested {
+                    TimerRequested = false
+                    serviceInterrupt(for: .Timer)
+                } else if JoypadEnabled && JoypadRequested {
+                    JoypadRequested = false
+                    serviceInterrupt(for: .Joypad)
+                }
+            }
+        }
+        
+        static func serviceInterrupt(for type: Interrupt) {
+            pushPC()
+            CPU.registers.PC = type.rawValue
+            CPU.isHalted = false
+        }
+        
+        static func requestInterrupt(for interrupt: Interrupt) {
+            if interruptEnabled {
+                switch interrupt {
+                case .VBlank:
+                    Interrupt.VBlankRequested = true
+                case .LCD:
+                    Interrupt.LCDRequested = true
+                case .Timer:
+                    Interrupt.TimerRequested = true
+                case .Joypad:
+                    Interrupt.JoypadRequested = true
+                }
+            }
+            
         }
     }
-    
-    static func serviceInterrupts() {
-        
-    }
-    
+
     static let basicTable: Array<()->()> = [
         I(.NOOP), // 0x00 -> NOP
         I(.LD16,.BC, .Immed16), // 0x01 -> LD BC,d16
@@ -716,7 +785,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             let c = a.addingReportingOverflow(b)
             CPU.registers.flags.carry = c.overflow
             // the below operation might be really slow
-            CPU.registers.flags.halfCarry = UInt8(a & 0x00FF).addingReportingOverflow(UInt8(b & 0x00FF)).overflow
+            CPU.registers.flags.halfCarry = (((a & 0x0FFF) + (b & 0x0FFF)) & 0xF000) > 0
             CPU.registers.flags.subtract = false
             return c.partialValue
         }
@@ -942,6 +1011,11 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         } else {
             exec = popPC
         }
+    case .RETI:
+        exec = {
+            popPC()
+            CPU.interruptEnabled = true
+        }
     case .JP:
         fallthrough
     case .JR:
@@ -980,11 +1054,11 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         exec = generateUnaryOp8(set, arg2!)
     case .DI:
         return {
-            CPU.interruptEnable = false
+            CPU.interruptEnabled = false
         }
     case .EI:
         exec = {
-            CPU.interruptEnable = true
+            CPU.interruptEnabled = true
         }
     case .HALT:
         exec = {
@@ -992,9 +1066,10 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         }
     default:
         exec = {
-            fatalError("Unimplemented operation! \(operation) \(arg1) \(arg2)")
+            fatalError("Unimplemented operation! \(operation) \(arg1!) \(arg2!)")
         }
     }
+    
     if CPU.debugMode {
         return {
             CPU.prevInstruction = "\(String(describing: operation)) \(arg1 != nil ? String(describing: arg1!) : "") \(arg2 != nil ? String(describing: arg2!) : "")"
@@ -1088,60 +1163,7 @@ func generateJump(_ operation: InstType, _ arg1: Argument, _ arg2: Argument?) ->
             }
         }
     }
-    
-    /*if let condition = condition {
-        guard let arg2 = arg2 else { fatalError() }
-        
-        if case .Immed16 = arg2 {
-            return {
-                if condition() {
-                    CPU.prevInstCycles = 16
-                    CPU.registers.PC = CPU.readWordImmediate()
-                } else {
-                    // skip the 2 bytes of immediates
-                    
-                    CPU.registers.PC += 2
-                    CPU.prevInstCycles = 12
-                }
-            }
-        } else {
-            // this adds the byte immediate to the pc
-            return {
-                if condition() {
-                    let a = CPU.readByteImmediate()
-                    let neg = a & 0x80 > 0
-                    let result = CPU.registers.PC &+ (UInt16(a) | (neg ? 0xFF00 : 0x0000))
-                    CPU.registers.PC = result
-                    CPU.prevInstCycles = 12
-                } else {
-                    CPU.registers.PC += 1
-                    CPU.prevInstCycles = 8
-                }
-                
-            }
-        }
-    } else {
-        if case .Immed16 = arg1 {
-            return {
-                CPU.registers.PC = CPU.readWordImmediate()
-                CPU.prevInstCycles = 16
-            }
-        } else if case .Mem = arg1 {
-            return {
-                CPU.registers.PC = CPU.registers.HL
-                CPU.prevInstCycles = 4
-            }
-        } else {
-            return {
-                let a = CPU.readByteImmediate()
-                let neg = a & 0x80 > 0
-                let result = CPU.registers.PC &+ (UInt16(a) | (neg ? 0xFF00 : 0x0000))
-                CPU.registers.PC = result
-                CPU.prevInstCycles = 12
-            }
-        }
-     }*/
-    
+
     
 }
 
@@ -1421,8 +1443,22 @@ func generateBinOp16(_ operation :@escaping (UInt16, UInt16)->(UInt16),_ dest: A
         reader = { return CPU.registers.SP }
 
     case .Immed16:
+        clocks += 8
         reader = CPU.readWordImmediate
-
+    case .HL:
+        clocks += 4
+        reader = { return CPU.registers.HL }
+    case .SPr8:
+        clocks += 12
+        reader = {
+            let immed = CPU.readByteImmediate()
+            let neg = (0x80 & immed) > 0 // use neg for sign extending
+            let signExt = UInt16(immed) | (neg ? 0xFF00 : 0)
+            let res = CPU.registers.SP.addingReportingOverflow(signExt)
+            CPU.registers.flags.carry = res.overflow
+            CPU.registers.flags.halfCarry = (((CPU.registers.SP & 0x0FFF) + (signExt & 0x0FFF)) & 0xF000) > 0
+            return res.partialValue
+        }
     default:
         reader = { fatalError("Invalid") }
     }
@@ -1431,22 +1467,22 @@ func generateBinOp16(_ operation :@escaping (UInt16, UInt16)->(UInt16),_ dest: A
     
     case .BC:
         return {
-            CPU.cycles += clocks
+            CPU.prevInstCycles += clocks
             CPU.registers.BC = operation(CPU.registers.BC, reader())
         }
     case .DE:
         return {
-            CPU.cycles += clocks
+            CPU.prevInstCycles += clocks
             CPU.registers.DE = operation(CPU.registers.DE, reader())
         }
     case .SP:
         return {
-            CPU.cycles += clocks
+            CPU.prevInstCycles += clocks
             CPU.registers.SP = operation(CPU.registers.SP, reader())
         }
     case .HL:
         return {
-            CPU.cycles += clocks
+            CPU.prevInstCycles += clocks
             CPU.registers.HL = operation(CPU.registers.HL, reader())
         }
     case .Mem(let target):
@@ -1455,7 +1491,7 @@ func generateBinOp16(_ operation :@escaping (UInt16, UInt16)->(UInt16),_ dest: A
         case .Immed16:
             return {
                 // it seems this scenario only is used to store SP in memory
-                CPU.cycles += clocks
+                CPU.prevInstCycles += clocks
                 // this reader is definitely the stack pointer
                 let word = reader()
                 let lower = UInt8(word & 0x00FF)

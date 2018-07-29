@@ -11,7 +11,7 @@ import Foundation
 struct Cartridge {
     
     let ROMbanks: Array<Data>
-    var RAMbanks: Array<Data> = Array<Data>(repeating: Data(capacity: 0x2000), count: 4)
+    var RAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating: 0, count: 0x2000), count: 4)
     
     
     init(filename: String) {

@@ -12,6 +12,7 @@ struct Timer {
     
     static var counter: UInt8 = 0
     static var modulo: UInt8 = 0
+    static var divider: UInt8 = 0
     private static var timerEnabled = false
     private static var clockMode: UInt8 = 4 {
         didSet {
@@ -31,6 +32,7 @@ struct Timer {
     }
     private static var overflowBit: UInt = 1 << 4 // this is for selecting the bit that is high when the timer should be incremented
     private static var internalCounter: UInt = 0
+    private static var internalDividerCounter: UInt = 0
     static var controllerRegister: UInt8 {
         get {
             return (timerEnabled ? 0x4 : 0x0) | clockMode
@@ -42,6 +44,11 @@ struct Timer {
     }
     
     static func updateTimer(elapsed time: UInt) {
+        internalDividerCounter += time
+        if internalDividerCounter & (1 << 8) > 0 { // this should trigger every 256 clock cycles
+            internalDividerCounter = internalDividerCounter - 0x100
+            divider = divider &+ 1
+        }
         if timerEnabled {
             internalCounter += time
             if internalCounter & overflowBit > 0 {
@@ -49,7 +56,7 @@ struct Timer {
                 let a = counter.addingReportingOverflow(1)
                 counter = a.partialValue
                 if a.overflow {
-                    CPU.requestInterrupt(for: CPU.Interrupt.Timer)
+                    CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.Timer)
                 }
                 // reset the internal counter
                 internalCounter = 0

@@ -25,12 +25,16 @@ struct GameBoy {
         while true {
             let cycles = CPU.execNextInstruction()
             GPU.updateGraphics(cycles: cycles)
+            Timer.updateTimer(elapsed: cycles)
+            CPU.Interrupt.processInterrupts()
         }
     }
     
     func execInstruc() {
         let cycles = CPU.execNextInstruction()
         GPU.updateGraphics(cycles: cycles)
+        Timer.updateTimer(elapsed: cycles)
+        CPU.Interrupt.processInterrupts()
     }
     
     func continueExecution(to pc: UInt16) {

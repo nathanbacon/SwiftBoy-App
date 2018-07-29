@@ -115,18 +115,18 @@ struct GPU {
                     case .HBlank:
                         // request interrupt
                         if IntHBlank {
-                            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
+                            CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.LCD)
                         }
                         break
                     case .VBlank:
                         if IntVBlank {
-                            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
+                            CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.LCD)
 
                         }
                         break
                     case .searchSprite:
                         if IntSearchSprite {
-                            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
+                            CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.LCD)
                         }
                         break
                     case .dataTransfer:
@@ -191,7 +191,7 @@ struct GPU {
         }
         
         if STAT.IntCoincidence && STAT.coincidenceFlag {
-            CPU.requestInterrupt(for: CPU.Interrupt.LCD)
+            CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.LCD)
         }
     }
     
@@ -209,7 +209,7 @@ struct GPU {
             
             scanLineCycles = 0
             if currentLine == 144 {
-                CPU.requestInterrupt(for: CPU.Interrupt.VBlank)
+                CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.VBlank)
             } else if currentLine > 153 {
                 currentLine = 0
             } else if currentLine < 144 {
@@ -218,7 +218,7 @@ struct GPU {
         }
     }
     
-    static func drawScanLine() {
+    private static func drawScanLine() {
         if LCDC.BGDisplay {
             renderTiles()
         }
@@ -233,7 +233,7 @@ struct GPU {
         return (red: 32, green: 32, blue: 32)
     }
     
-    static func renderTiles() {
+    private static func renderTiles() {
         var tileData: UInt16 = 0
         var backgroundMemory: UInt16 = 0
         var unsig = true
@@ -270,10 +270,11 @@ struct GPU {
             
             let lData = vram[tileLocation + lineInTile]
             let hData = vram[tileLocation + lineInTile + 1]
-            
+           
             // will be high on the bit of data needed to select the color of the tile
             let colorSelector: UInt8 = 0x80 >> (pixel % 8)
             let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00 | (colorSelector & lData) > 0 ? 0b01 : 0b00)
+
             let color = getColor(from: shade)
             
             screenData[UInt16(currentLine) + UInt16(pixel)] = color
