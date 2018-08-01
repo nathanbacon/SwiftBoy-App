@@ -13,7 +13,9 @@ struct GPU {
     
     static var gpu = GPU()
     
-    static var screenData = Array<(red: UInt8, green: UInt8, blue: UInt8)>(repeating: (0,0,0), count: 160*144)
+    static var textureData = Data(repeating: 0x00, count: 160*144*4)
+   
+    //static var screenData = Array<(red: UInt8, green: UInt8, blue: UInt8)>(repeating: (0,0,0), count: 160*144)
     
     static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
     static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
@@ -177,11 +179,12 @@ struct GPU {
         
         if currentLine >= 144 {
             STAT.mode = .VBlank
+            
         } else {
             let mode2bound = 80
             let mode3bound = mode2bound + 172
             
-            if scanLineCycles < mode3bound {
+            if scanLineCycles < mode2bound {
                 STAT.mode = .searchSprite
             } else if scanLineCycles < mode3bound {
                 STAT.mode = .dataTransfer
@@ -275,9 +278,35 @@ struct GPU {
             let colorSelector: UInt8 = 0x80 >> (pixel % 8)
             let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00 | (colorSelector & lData) > 0 ? 0b01 : 0b00)
 
-            let color = getColor(from: shade)
+            //let color = getColor(from: shade)
+
+            let offset = Int(currentLine) * 160*4 + Int(pixel) * 4
+            switch shade {
+            case 0x00:
+                textureData[offset] = 0xFF
+                textureData[offset+1] = 0xFF
+                textureData[offset+2] = 0xFF
+                textureData[offset+3] = 0xFF
+            case 0x01:
+                textureData[offset] = 0xAF
+                textureData[offset+1] = 0xAF
+                textureData[offset+2] = 0xAF
+                textureData[offset+3] = 0xAF
+            case 0x02:
+                textureData[offset] = 0x5F
+                textureData[offset+1] = 0x5F
+                textureData[offset+2] = 0x5F
+                textureData[offset+3] = 0x5F
+            case 0x03:
+                textureData[offset] = 0x00
+                textureData[offset+1] = 0x00
+                textureData[offset+2] = 0x00
+                textureData[offset+3] = 0x00
+            default:
+                fatalError()
+            }
             
-            screenData[UInt16(currentLine) + UInt16(pixel)] = color
+            //textureData[offset] = shade
         }
         
     }

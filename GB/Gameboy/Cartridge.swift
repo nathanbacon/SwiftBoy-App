@@ -12,7 +12,8 @@ struct Cartridge {
     
     let ROMbanks: Array<Data>
     var RAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating: 0, count: 0x2000), count: 4)
-    
+    var activeROMBankNo: Int = 1
+    var activeRAMBankNo: Int = 1
     
     init(filename: String) {
 
@@ -30,11 +31,13 @@ struct Cartridge {
 
     }
     
-    func getROMBank(at index: UInt8) -> Data {
+    mutating func getROMBank(at index: UInt8) -> Data {
+        activeROMBankNo = Int(index)
         return ROMbanks[Int(index)]
     }
     
     mutating func getRAMBank(at index: UInt8) -> UnsafeMutablePointer<Data> {
+        activeRAMBankNo = Int(index)
         return withUnsafeMutablePointer(to: &RAMbanks[Int(index)], {$0})
     }
 }

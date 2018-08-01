@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		751E6AA32111180E00363A48 /* GBDisplayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751E6AA22111180E00363A48 /* GBDisplayViewController.swift */; };
 		7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7544618620FB0FBF002C3687 /* Cartridge.swift */; };
 		7544618920FB1883002C3687 /* pokemon_blue.gb in Resources */ = {isa = PBXBuildFile; fileRef = 7544618820FB1883002C3687 /* pokemon_blue.gb */; };
 		754BA1CF20B53E5E00858222 /* bios.gb in Resources */ = {isa = PBXBuildFile; fileRef = 754BA1CE20B53E5E00858222 /* bios.gb */; };
@@ -24,9 +25,12 @@
 		75A58D9920A4D94100CB2DD2 /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A58D9820A4D94100CB2DD2 /* CPU.swift */; };
 		75D0BD712101BAE60004BA8E /* GPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D0BD702101BAE60004BA8E /* GPU.swift */; };
 		75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D44C6720EA062A00AFF9C2 /* Registers.swift */; };
+		75ED5318210F151D009BEFEB /* GBRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5317210F151D009BEFEB /* GBRenderer.swift */; };
+		75ED531A210F156A009BEFEB /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5319210F156A009BEFEB /* Shaders.metal */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		751E6AA22111180E00363A48 /* GBDisplayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBDisplayViewController.swift; sourceTree = "<group>"; };
 		7544618620FB0FBF002C3687 /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
 		7544618820FB1883002C3687 /* pokemon_blue.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = pokemon_blue.gb; sourceTree = "<group>"; };
 		754BA1CE20B53E5E00858222 /* bios.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = bios.gb; sourceTree = "<group>"; };
@@ -46,6 +50,8 @@
 		75A58D9820A4D94100CB2DD2 /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
 		75D0BD702101BAE60004BA8E /* GPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPU.swift; sourceTree = "<group>"; };
 		75D44C6720EA062A00AFF9C2 /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
+		75ED5317210F151D009BEFEB /* GBRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBRenderer.swift; sourceTree = "<group>"; };
+		75ED5319210F156A009BEFEB /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +73,8 @@
 				75D44C6720EA062A00AFF9C2 /* Registers.swift */,
 				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
+				75ED5317210F151D009BEFEB /* GBRenderer.swift */,
+				75ED5319210F156A009BEFEB /* Shaders.metal */,
 				75D0BD702101BAE60004BA8E /* GPU.swift */,
 				7544618620FB0FBF002C3687 /* Cartridge.swift */,
 				754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */,
@@ -95,8 +103,7 @@
 		75A58D8520A4D92D00CB2DD2 /* GB */ = {
 			isa = PBXGroup;
 			children = (
-				754BA1D020B543CB00858222 /* GameBoyViewController.swift */,
-				7590371320FC324D0065F70A /* GameboyDebugViewController.swift */,
+				751E6AA22111180E00363A48 /* GBDisplayViewController.swift */,
 				754EA5DC21087F00005848D3 /* GameboyDebugger.swift */,
 				754BA1D220B5452900858222 /* Gameboy */,
 				75A58D8620A4D92D00CB2DD2 /* AppDelegate.swift */,
@@ -104,6 +111,8 @@
 				75A58D8D20A4D92D00CB2DD2 /* Assets.xcassets */,
 				75A58D8F20A4D92D00CB2DD2 /* LaunchScreen.storyboard */,
 				75A58D9220A4D92D00CB2DD2 /* Info.plist */,
+				7590371320FC324D0065F70A /* GameboyDebugViewController.swift */,
+				754BA1D020B543CB00858222 /* GameBoyViewController.swift */,
 			);
 			path = GB;
 			sourceTree = "<group>";
@@ -187,9 +196,12 @@
 				754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */,
 				755F62AF210C78BD00530AD8 /* Timer.swift in Sources */,
 				7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */,
+				75ED5318210F151D009BEFEB /* GBRenderer.swift in Sources */,
 				75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */,
 				754EA5DD21087F00005848D3 /* GameboyDebugger.swift in Sources */,
+				75ED531A210F156A009BEFEB /* Shaders.metal in Sources */,
 				75D0BD712101BAE60004BA8E /* GPU.swift in Sources */,
+				751E6AA32111180E00363A48 /* GBDisplayViewController.swift in Sources */,
 				754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */,
 				75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */,
 				754BA1D820B5EEBF00858222 /* GameBoy.swift in Sources */,

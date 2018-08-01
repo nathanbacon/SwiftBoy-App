@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct GameBoy {
+class GameBoy {
     static var cpu: CPU = CPU.cpu
     
     static var mmu: MMU = MMU.mmu
@@ -30,19 +30,36 @@ struct GameBoy {
         }
     }
     
-    func execInstruc() {
+    func execInstruc() -> UInt {
         let cycles = CPU.execNextInstruction()
         GPU.updateGraphics(cycles: cycles)
         Timer.updateTimer(elapsed: cycles)
         CPU.Interrupt.processInterrupts()
+        return cycles
     }
     
     func continueExecution(to pc: UInt16) {
         CPU.startTime = CFAbsoluteTimeGetCurrent()
         while CPU.registers.PC != pc {
-            execInstruc()
+            _ = execInstruc()
         }
     }
+    
+    var nextFrame: Data {
+        get {
+            //GPU.textureData = Data(repeating: 0xFF, count: 160*144*4)
+            var elapsedCycles: UInt = 0
+            while elapsedCycles < 69905 {
+                elapsedCycles += execInstruc()
+            }
+            return GPU.textureData
+            
+        }
+        set {
+            
+        }
+    }
+    
     
 
 }

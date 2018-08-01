@@ -37,7 +37,7 @@ class MMU {
     
     var bios_mode = false
     
-    var bios: Data = try! Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "bios", ofType: "gb")!))
+    //var bios: Data = try! Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: "bios", ofType: "gb")!))
     var rom: Data?
     
     var bank0: Data = Data(repeating: 0, count: 0x4000)
@@ -97,17 +97,29 @@ class MMU {
         get {
             switch(index >> 12) {
             case 0x0:
-                if(bios_mode) {
+                /*if(bios_mode) {
                     guard (index < 0x100) else { fatalError() }
                     return bios[index]
-                }
+                }*/
                 fallthrough
-            case 0x1...0x3:
+            case 0x1:
+                fallthrough
+            case 0x2:
+                fallthrough
+            case 0x3:
                 return bank0[index]
-            case 0x4...0x7:
+            case 0x4:
+                fallthrough
+            case 0x5:
+                fallthrough
+            case 0x6:
+                fallthrough
+            case 0x7:
                 return bank1[index & 0x3FFF]
                 
-            case 0x8...0x9:
+            case 0x8:
+                fallthrough
+            case 0x9:
                 return GPU.gpu[index & 0x1FFF]
             case 0xA:
                 fallthrough
@@ -219,12 +231,19 @@ class MMU {
         set {
             
             switch(index >> 12) {
-            case 0..<2:
+            case 0:
+                fallthrough
+            case 1:
+                fallthrough
                 // this is a rom bank so we should never write to it
                 bank0[index] = newValue
-            case 2...3:
+            case 2:
+                fallthrough
+            case 3:
                 bank1 = cartridge!.getROMBank(at: newValue & 0x3F)
-            case 4...5:
+            case 4:
+                fallthrough
+            case 5:
                 externRAM = cartridge!.getRAMBank(at: newValue & 0x0003)
             case 6...7:
                 // bottom of p 216 in gbc manual
@@ -301,6 +320,10 @@ class MMU {
                         }
                     case 0xFF47:
                         //pallete selector p 57 of dmg manual
+                        fallthrough
+                    case 0xFF48:
+                        fallthrough
+                    case 0xFF49:
                         break
                     case 0xFF55:
                         // Transfer start and number of bytes to transfer

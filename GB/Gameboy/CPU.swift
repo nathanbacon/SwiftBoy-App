@@ -30,7 +30,7 @@ class CPU {
         }
     }
     
-    static var debugMode = true
+    static var debugMode = false
     static var prevInstruction = ""
     static var totalInstructions = 0
     static var startTime: CFAbsoluteTime = CFAbsoluteTimeGetCurrent()
@@ -46,6 +46,7 @@ class CPU {
         if CPU.isHalted {
             return 4
         } else {
+            CPU.prevInstCycles = 0
             CPU.fetchInstruction()()
             totalInstructions += 1
             return prevInstCycles
@@ -158,7 +159,7 @@ class CPU {
         I(.RLCA), // 0x07 -> RLCA
         I(.LD16, .Mem(.Immed16), .SP), // 0x08 -> LD (a16), SP
         I(.ADD16, .HL, .BC), // 0x09 -> ADD HL, BC
-        I(.LD16, .A, .Mem(.BC)), // 0x0A -> LD A, (BC)
+        I(.LD8, .A, .Mem(.BC)), // 0x0A -> LD A, (BC)
         I(.DEC16, .BC), // 0x0B -> DEC BC
         I(.INC8, .C), // 0x0C -> INC C
         I(.DEC8, .C), // 0x0D -> DEC C
@@ -880,6 +881,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             }
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.prevInstCycles = 4
         }
     case .RRCA:
         exec = {
@@ -890,6 +892,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             }
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.prevInstCycles = 4
         }
     case .RRA:
         exec = {
@@ -897,6 +900,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.A >>= 1
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.prevInstCycles = 4
         }
     case .RLA:
         exec = {
@@ -904,7 +908,18 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.A <<= 1
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.prevInstCycles = 4
         }
+    case .RL:
+        let rotateLeft: (UInt8) -> UInt8 = { a in
+            let carry: UInt8 = CPU.registers.flags.carry ? 0x80 : 0x00
+            CPU.registers.flags.carry = (0x80 & a) > 0
+            CPU.registers.flags.zero = a == 0x80
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
+            return (a << 1) | carry
+        }
+        exec = generateUnaryOp8(rotateLeft, arg1!)
     case .RLC:
         let rotateLeft: (UInt8) -> UInt8 = { a in
             CPU.registers.flags.carry = (0b10000000 & a) > 0
@@ -926,12 +941,63 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             return (a >> 1) | carry
         }
         exec = generateUnaryOp8(rotateRight, arg1!)
+    case .RRC:
+        let rotateRightCarry: (UInt8) -> UInt8 = { a in
+            CPU.registers.flags.carry = (0x01 & a) > 0
+            CPU.registers.flags.zero = a == 0x01
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.subtract = false
+            return (a >> 1)
+        }
+        exec = generateUnaryOp8(rotateRightCarry, arg1!)
+    case .SRL:
+        let shiftRight: (UInt8) -> UInt8 = { a in
+            CPU.registers.flags.carry = (a & 0x01) > 0
+            CPU.registers.flags.zero = a == 0x01
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.halfCarry = false
+            return (a >> 1)
+        }
+        exec = generateUnaryOp8(shiftRight, arg1!)
+    case .SLA:
+        let shiftLeft: (UInt8) -> UInt8 = {
+            CPU.registers.flags.carry = ($0 & 0x80) > 0
+            CPU.registers.flags.zero = $0 == 0x80
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.halfCarry = false
+            return $0 << 1
+        }
+        exec = generateUnaryOp8(shiftLeft, arg1!)
+    case .SRA:
+        let shiftRight: (UInt8) -> UInt8 = {
+            CPU.registers.flags.carry = ($0 & 0x01) > 0
+            CPU.registers.flags.zero = $0 == 0x01
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.halfCarry = false
+            return $0 >> 1
+        }
+        exec = generateUnaryOp8(shiftRight, arg1!)
+    case .SCF:
+        exec = {
+            CPU.registers.flags.carry = true
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.halfCarry = false
+            CPU.prevInstCycles = 4
+        }
+    case .CCF:
+        exec = {
+            CPU.registers.flags.carry = !CPU.registers.flags.carry
+            CPU.registers.flags.subtract = false
+            CPU.registers.flags.halfCarry = false
+            CPU.prevInstCycles = 4
+        }
     case .POP:
         let pop: (UInt16) -> UInt16 = { _ in
             let l = CPU.mmu[CPU.registers.SP]
             CPU.registers.SP += 1
             let h = CPU.mmu[CPU.registers.SP]
             CPU.registers.SP += 1
+            CPU.prevInstCycles = 12
             return (UInt16(h) << 8) | UInt16(l)
         }
         exec = generateUnaryOp16(pop, arg1!)
@@ -941,6 +1007,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.mmu[CPU.registers.SP] = UInt8((a & 0xFF00) >> 8)
             CPU.registers.SP -= 1
             CPU.mmu[CPU.registers.SP] = UInt8((a & 0x00FF))
+            CPU.prevInstCycles = 12
             return a
         }
         
@@ -950,12 +1017,14 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.subtract = true
             CPU.registers.flags.halfCarry = true
             CPU.registers.A = ~CPU.registers.A
+            CPU.prevInstCycles = 4
         }
     case .RST:
         guard case .Number(let addr)? = arg1 else { fatalError() }
         exec = {
             pushPC()
             CPU.registers.PC = UInt16(addr)
+            CPU.prevInstCycles = 16
         }
     case .CALL:
         if case .Immed16? = arg1 {
@@ -963,6 +1032,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
                 let i = CPU.readWordImmediate()
                 pushPC()
                 CPU.registers.PC = i
+                CPU.prevInstCycles = 24
             }
         } else {
             let condition: (()->(Bool))
@@ -984,6 +1054,9 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
                 if condition() {
                     pushPC()
                     CPU.registers.PC = i
+                    CPU.prevInstCycles = 24
+                } else {
+                    CPU.prevInstCycles = 12
                 }
             }
         }
@@ -1006,15 +1079,20 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             exec = {
                 if condition() {
                     popPC()
+                    CPU.prevInstCycles = 20
+                } else {
+                    CPU.prevInstCycles = 8
                 }
             }
         } else {
             exec = popPC
+            CPU.prevInstCycles = 16
         }
     case .RETI:
         exec = {
             popPC()
             CPU.interruptEnabled = true
+            CPU.prevInstCycles = 16
         }
     case .JP:
         fallthrough
@@ -1026,6 +1104,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             let opcode = CPU.mmu[CPU.registers.PC]
             CPU.registers.PC += 1
             CPU.prefixTable[opcode]()
+            CPU.prevInstCycles += 4
         }
         
     case .BIT:
@@ -1055,14 +1134,17 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
     case .DI:
         return {
             CPU.interruptEnabled = false
+            CPU.prevInstCycles = 4
         }
     case .EI:
         exec = {
             CPU.interruptEnabled = true
+            CPU.prevInstCycles = 4
         }
     case .HALT:
         exec = {
             CPU.isHalted = true
+            CPU.prevInstCycles = 4
         }
     default:
         exec = {
@@ -1175,50 +1257,49 @@ func generateUnaryOp8(_ operation: @escaping (UInt8) -> (UInt8), _ dest: Argumen
     case .A:
         return {
             CPU.registers.A = operation(CPU.registers.A)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .B:
         return {
             CPU.registers.B = operation(CPU.registers.B)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .C:
         return {
             CPU.registers.C = operation(CPU.registers.C)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .D:
         return {
             CPU.registers.D = operation(CPU.registers.D)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .E:
         return {
             CPU.registers.E = operation(CPU.registers.E)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .H:
         return {
             CPU.registers.H = operation(CPU.registers.H)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .Mem(.HL):
         clocks += 4
         return {
             let addr = CPU.registers.HL
             CPU.mmu[addr] = operation(CPU.mmu[addr])
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     case .L:
         return {
             CPU.registers.L = operation(CPU.registers.L)
-            CPU.prevInstCycles = clocks
+            CPU.prevInstCycles += clocks
         }
     default:
         fatalError()
     }
-    
-    return {}
+
 }
 
 func generateUnaryOp16(_ operation: @escaping (UInt16) -> (UInt16), _ dest: Argument) -> (()->()) {
