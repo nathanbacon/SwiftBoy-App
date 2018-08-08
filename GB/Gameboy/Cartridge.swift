@@ -36,8 +36,15 @@ struct Cartridge {
         return ROMbanks[Int(index)]
     }
     
-    mutating func getRAMBank(at index: UInt8) -> UnsafeMutablePointer<Data> {
+    mutating func getRAMBank(at index: UInt8) {
         activeRAMBankNo = Int(index)
-        return withUnsafeMutablePointer(to: &RAMbanks[Int(index)], {$0})
+    }
+    
+    func readRam(at index: UInt16) -> UInt8 {
+        return RAMbanks[activeRAMBankNo][index]
+    }
+    
+    mutating func writeRam(at index: UInt16, newValue: UInt8) {
+        RAMbanks[activeRAMBankNo][index] = newValue
     }
 }

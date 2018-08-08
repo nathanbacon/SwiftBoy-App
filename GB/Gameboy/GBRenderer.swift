@@ -18,10 +18,10 @@ class GBRenderer: NSObject {
     var data: Data
     
     let vertices = [
-        Vertex(position: float3(-1,1,0), texture: float2(0, 1)),
-        Vertex(position: float3(-1,-1,0), texture: float2(0, 0)),
-        Vertex(position: float3(1,-1,0), texture: float2(1, 0)),
-        Vertex(position: float3(1,1,0), texture: float2(1, 1))
+        Vertex(position: float3(-1,1,0), texture: float2(0, 0)), // top left
+        Vertex(position: float3(-1,-1,0), texture: float2(0, 1)), // bottom left
+        Vertex(position: float3(1,-1,0), texture: float2(1, 1)), // bottom right
+        Vertex(position: float3(1,1,0), texture: float2(1, 0)) // top right
     ]
     
     var indices: [UInt16] = [
@@ -129,6 +129,8 @@ extension GBRenderer: MTKViewDelegate {
         commandEncoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
         
         //commandEncoder.setVertexBytes(&constants, length: MemoryLayout<Constants>.stride, index: 1)
+        
+        //let texture = try! textureLoader.newTexture(data: gameboy.nextFrame, options: [MTKTextureLoader.Option.origin: MTKTextureLoader.Origin.bottomLeft])
         
         let texture = device.makeTexture(descriptor: textureDescriptor)
         

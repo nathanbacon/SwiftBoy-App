@@ -13,24 +13,75 @@ struct GPU {
     
     static var gpu = GPU()
     
+    static var isReady = false
+    
     static var textureData = Data(repeating: 0x00, count: 160*144*4)
+    static var backgroundTransparent = Array<Bool>(repeating: false, count: 160*144)
+    static var claimedBySprite = Array<Bool>(repeating: false, count: 160*144)
    
     //static var screenData = Array<(red: UInt8, green: UInt8, blue: UInt8)>(repeating: (0,0,0), count: 160*144)
     
     static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
+    static var VRAMbankIndex = 0
     static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
-    static var vram: Data {
-        return activeVRAMbank.pointee
-    }
     
-    static var OAM = Data(repeating: 0, count: 0xA0)
+    static var OAM = Array<Sprite>(repeating: GPU.Sprite(), count: 40)
     
     subscript(index: UInt16) -> UInt8 {
         get {
-            return GPU.activeVRAMbank.pointee[index]
+            return GPU.VRAMbanks[GPU.VRAMbankIndex][index]
         }
         set {
-            GPU.activeVRAMbank.pointee[index] = newValue
+            GPU.VRAMbanks[GPU.VRAMbankIndex][index] = newValue
+        }
+    }
+    
+    struct Sprite {
+        enum SpritePriority: Int {
+            case AboveBackground = 0
+            case BehindBackground = 1
+        }
+        
+        var x: UInt8
+        var y: UInt8
+        var tileNum: UInt8
+        
+        var priority: SpritePriority
+        var yFlip: Bool
+        var xFlip: Bool
+        var DMGPallete: Bool
+        var VRAMBank: UInt8
+        var palleteNum: UInt8
+        
+        init() {
+            x = UInt8(bitPattern: -8)
+            y = UInt8(bitPattern: -16)
+            tileNum = 0
+            priority = .AboveBackground
+            yFlip = false
+            xFlip = false
+            DMGPallete = false
+            VRAMBank = 0
+            palleteNum = 0
+        }
+        
+        var attributes: UInt8 {
+            get {
+                return UInt8(priority == .BehindBackground ? 0x80 : 0) |
+                    (yFlip ? 0x40 : 0) |
+                    (xFlip ? 0x20 : 0) |
+                    (DMGPallete ? 0x10 : 0) |
+                    (VRAMBank << 3) |
+                    (palleteNum & 0x03)
+            }
+            set {
+                priority = (newValue & 0x80) > 0 ? .BehindBackground : .AboveBackground
+                yFlip = newValue & 0x40 > 0
+                xFlip = newValue & 0x20 > 0
+                DMGPallete = 0x10 & 0x10 > 0
+                VRAMBank = (newValue & 0x08) > 0 ? 0x1 : 0
+                palleteNum = newValue & 0x03
+            }
         }
     }
     
@@ -147,7 +198,7 @@ struct GPU {
                 (IntCoincidence ? 0x40 : 0)
             }
             set {
-                //mode = LCDMode(rawValue: newValue & 0x03) ?? .HBlank
+                //mode = LCDMode(rawValue: newValue & 0x03) ?? mode
                 IntHBlank = newValue & 0x08 > 0
                 IntVBlank = newValue & 0x10 > 0
                 IntSearchSprite = newValue & 0x20 > 0
@@ -177,9 +228,11 @@ struct GPU {
     
     static private func setLCDStatus() {
         
-        if currentLine >= 144 {
+        if currentLine == 144 {
             STAT.mode = .VBlank
-            
+            //GPU.isReady = true
+        } else if currentLine > 144 {
+            STAT.mode = .VBlank
         } else {
             let mode2bound = 80
             let mode3bound = mode2bound + 172
@@ -213,6 +266,7 @@ struct GPU {
             scanLineCycles = 0
             if currentLine == 144 {
                 CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.VBlank)
+                isReady = true
             } else if currentLine > 153 {
                 currentLine = 0
             } else if currentLine < 144 {
@@ -227,13 +281,82 @@ struct GPU {
         }
         
         if LCDC.spriteDisplay {
-            // render sprites
+            renderSprites()
         }
     }
     
     private static func getColor(from shade: UInt8) -> (red: UInt8, green: UInt8, blue: UInt8) {
         // this function will eventually read palette data in the GPU
         return (red: 32, green: 32, blue: 32)
+    }
+    
+    private static func renderSprites() {
+        
+        claimedBySprite = Array<Bool>(repeating: false, count: 160*144)
+
+        for spriteInd in 0..<40 {
+            let sprite = OAM[spriteInd]
+            let yPos = sprite.y
+            let ySize: UInt8 = LCDC.spriteSize ? 16 : 8
+            let xPos = sprite.x
+            
+            guard yPos <= currentLine, currentLine < yPos &+ ySize, xPos &+ 8 >= 0 else { continue } // determine if the sprite is on the screen
+            
+            
+            let tileLocation = sprite.tileNum
+            let lineInSprite = currentLine - yPos
+
+            let charBank = sprite.VRAMBank & 0x01
+
+            let lineAddr = sprite.yFlip ? UInt16(tileLocation + 1) << 4 - UInt16(lineInSprite) * 2 : UInt16(tileLocation) << 4 + UInt16(lineInSprite) * 2
+            
+            let lData = VRAMbanks[charBank][lineAddr+1]
+            let hData = VRAMbanks[charBank][lineAddr]
+            
+            
+            
+            for xPixel: UInt8 in 0..<8 {
+                guard xPixel &+ xPos >= 0, xPixel &+ xPos < 160 else { continue }
+                let colorSelector = sprite.xFlip ? UInt8(0x01 << xPixel) : UInt8(0x80 >> xPixel)
+                
+                let l: UInt8 = lData & (colorSelector) > 0 ? 0b01 : 0
+                let h: UInt8 = hData & (colorSelector) > 0 ? 0b10 : 0
+                
+                let shade = h | l
+                
+                let offset = Int(currentLine) * 160 + Int(xPos &+ xPixel)
+                guard shade != 0 && !claimedBySprite[offset] && (sprite.priority == .AboveBackground || backgroundTransparent[offset]) else { continue }
+                claimedBySprite[offset] = true
+                let memoryOffset = offset * 4
+                
+                switch shade {
+                case 0x00:
+                    textureData[memoryOffset] = 0xFF
+                    textureData[memoryOffset+1] = 0xFF
+                    textureData[memoryOffset+2] = 0xFF
+                    textureData[memoryOffset+3] = 0xFF
+                case 0x01:
+                    textureData[memoryOffset] = 0xAF
+                    textureData[memoryOffset+1] = 0xAF
+                    textureData[memoryOffset+2] = 0xAF
+                    textureData[memoryOffset+3] = 0xAF
+                case 0x02:
+                    textureData[memoryOffset] = 0x5F
+                    textureData[memoryOffset+1] = 0x5F
+                    textureData[memoryOffset+2] = 0x5F
+                    textureData[memoryOffset+3] = 0x5F
+                case 0x03:
+                    textureData[memoryOffset] = 0x00
+                    textureData[memoryOffset+1] = 0x00
+                    textureData[memoryOffset+2] = 0x00
+                    textureData[memoryOffset+3] = 0xFF
+                default:
+                    fatalError()
+                }
+            }
+            
+            
+        }
     }
     
     private static func renderTiles() {
@@ -256,7 +379,7 @@ struct GPU {
             backgroundMemory = LCDC.BGTileMapSelect ? 0x1C00 : 0x1800
         }
         
-        let yPos: UInt16 = UInt16(usingWindow ? scrollY + currentLine : currentLine - windowY)
+        let yPos: UInt16 = UInt16(!usingWindow ? scrollY + currentLine : currentLine - windowY)
         let tileRow = UInt16(yPos/8)*32
         let lineInTile = (yPos % 8) * 2
         /*for tileRow in stride(from: 0, to: 160, by: 8) {
@@ -267,13 +390,23 @@ struct GPU {
             let xPos = UInt16(usingWindow && pixel >= windowX ? pixel - windowX : pixel + scrollX)
             
             let tileCol = xPos / 8
-            let tileNum = UInt16(activeVRAMbank.pointee[(backgroundMemory + tileRow + tileCol)])
+            let tileNum = UInt8(VRAMbanks[VRAMbankIndex][(backgroundMemory + tileRow + tileCol)])
             
-            let tileLocation = tileData + UInt16(unsig ? (tileNum * 16) : ((tileNum + 128) * 16) )
+            //let tileNum = UInt16(VRAMbanks[0][(backgroundMemory + tileRow + tileCol)])
+
+            let tileLocation = tileData + (unsig ? UInt16(tileNum) * 16 : UInt16((tileNum &+ 128)) * 16)
+
             
-            let lData = vram[tileLocation + lineInTile]
-            let hData = vram[tileLocation + lineInTile + 1]
-           
+            
+            let lData = VRAMbanks[VRAMbankIndex][tileLocation + lineInTile]
+            let hData = VRAMbanks[VRAMbankIndex][tileLocation + lineInTile + 1]
+            
+            /*if tileNum == 0x19 {
+                print(tileNum)
+                print(tileLocation)
+                print("row \(tileRow) col \(tileCol)")
+            }*/
+            
             // will be high on the bit of data needed to select the color of the tile
             let colorSelector: UInt8 = 0x80 >> (pixel % 8)
             let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00 | (colorSelector & lData) > 0 ? 0b01 : 0b00)
@@ -287,21 +420,25 @@ struct GPU {
                 textureData[offset+1] = 0xFF
                 textureData[offset+2] = 0xFF
                 textureData[offset+3] = 0xFF
+                backgroundTransparent[Int(currentLine) * 160 + Int(pixel)] = true
             case 0x01:
                 textureData[offset] = 0xAF
                 textureData[offset+1] = 0xAF
                 textureData[offset+2] = 0xAF
                 textureData[offset+3] = 0xAF
+                backgroundTransparent[Int(currentLine) * 160 + Int(pixel)] = false
             case 0x02:
                 textureData[offset] = 0x5F
                 textureData[offset+1] = 0x5F
                 textureData[offset+2] = 0x5F
                 textureData[offset+3] = 0x5F
+                backgroundTransparent[Int(currentLine) * 160 + Int(pixel)] = false
             case 0x03:
                 textureData[offset] = 0x00
                 textureData[offset+1] = 0x00
                 textureData[offset+2] = 0x00
-                textureData[offset+3] = 0x00
+                textureData[offset+3] = 0xFF
+                backgroundTransparent[Int(currentLine) * 160 + Int(pixel)] = false
             default:
                 fatalError()
             }

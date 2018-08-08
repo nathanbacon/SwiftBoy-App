@@ -22,13 +22,14 @@ class MMU {
         didSet {
             if cartridge != nil {
                 bank0 = cartridge!.ROMbanks[0]
-                externRAM = cartridge!.getRAMBank(at: 0)
+                cartridge!.getRAMBank(at: 0)
             }
         }
     }
     
     static var WRAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating:0, count: 0x1000), count: 8)
     static var activeWRAMbank = withUnsafeMutablePointer(to: &WRAMbanks[0], {$0})
+    static var WRAMbankIndex = 1
     
     //static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
     //static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
@@ -43,36 +44,10 @@ class MMU {
     var bank0: Data = Data(repeating: 0, count: 0x4000)
     var bank1: Data = Data(repeating: 0, count: 0x4000)
     
-    var externRAM: UnsafeMutablePointer<Data>?
+    //var externRAM: UnsafeMutablePointer<Data>?
     var iram: Data = Data(repeating: 0, count: 0x80)
 
     // MARK: FLAGS/REGISTERS
-    
-    struct InterruptEnable {
-        static var verticalBlanking = false
-        static var LCDC = false
-        static var timerOverflow = false
-        static var serialTransferCompletion = false
-        static var P_10_13_term_neg_edge = false
-    }
-    
-    struct InputOutputPorts {
-        static var P10 = false
-        static var P11 = false
-        static var P12 = false
-        static var P13 = false
-        static var P14 = false
-        static var P15 = false
-    }
-    
-    static var DMA: UInt8 {
-        set {
-            // begin DMA transfer
-        }
-        get {
-            fatalError()
-        }
-    }
     
     static var DMAinProgress: Bool = false
     
@@ -86,11 +61,7 @@ class MMU {
         }
     }
     
-    static var BCPS: UInt8 = 0
-    static var BCPD: UInt8 = 0
-    static var OCPS: UInt8 = 0
-    static var OCPD: UInt8 = 0
-    
+
     static var FF00: UInt8 = 0
     
     subscript(index: UInt16) -> UInt8 {
@@ -124,12 +95,13 @@ class MMU {
             case 0xA:
                 fallthrough
             case 0xB:
-                // TODO: implement external RAM
-                return externRAM!.pointee[Int(index & 0x1FFF)]
+                // This method doesn't seem to work, just 
+                return cartridge!.readRam(at: index & 0x1FFF)
             case 0xC:
                 return MMU.WRAMbanks[0][index & 0x0FFF]
             case 0xD:
-                return MMU.activeWRAMbank.pointee[index & 0x0FFF]
+                //return MMU.activeWRAMbank.pointee[index & 0x0FFF]
+                return MMU.WRAMbanks[MMU.WRAMbankIndex][index & 0x0FFF]
             case 0xE:
                 fatalError()
             case 0xF:
@@ -137,7 +109,19 @@ class MMU {
                 switch(index) {
                 case 0xFE00..<0xFEA0:
                     // TODO: this holds sprite information
-                    return GPU.OAM[index & 0xA0]
+                    let spriteNum = index / 4
+                    switch index % 4 {
+                    case 0:
+                        return GPU.OAM[spriteNum].y + 16
+                    case 1:
+                        return GPU.OAM[spriteNum].x + 8
+                    case 2:
+                        return GPU.OAM[spriteNum].tileNum
+                    case 3:
+                        return GPU.OAM[spriteNum].attributes
+                    default:
+                        fatalError()
+                    }
 
                 case 0xFF00:
                     // input/output ports
@@ -234,7 +218,6 @@ class MMU {
             case 0:
                 fallthrough
             case 1:
-                fallthrough
                 // this is a rom bank so we should never write to it
                 bank0[index] = newValue
             case 2:
@@ -244,21 +227,30 @@ class MMU {
             case 4:
                 fallthrough
             case 5:
-                externRAM = cartridge!.getRAMBank(at: newValue & 0x0003)
-            case 6...7:
+                cartridge!.getRAMBank(at: newValue & 0x0003)
+            case 6:
+                fallthrough
+            case 7:
                 // bottom of p 216 in gbc manual
                 break
-            case 8...9:
+            case 8:
+                fallthrough
+            case 9:
                 GPU.gpu[index & 0x1FFF] = newValue
-            case 0xA...0xB:
-                externRAM!.pointee[0x1FFF] = newValue
+                break
+            case 0xA:
+                fallthrough
+            case 0xB:
+                cartridge!.writeRam(at: index & 0x1FFF, newValue: newValue)
             case 0xC:
                 MMU.WRAMbanks[0][index & 0x0FFF] = newValue
             case 0xD:
                 //wram[index & 0x1FFF] = newValue
-                MMU.activeWRAMbank.pointee[index & 0x0FFF] = newValue
+                MMU.WRAMbanks[MMU.WRAMbankIndex][index & 0x0FFF] = newValue
                 break
-            case 0xE...0xF:
+            case 0xE:
+                fallthrough
+            case 0xF:
                 if (index < 0xFE00) {
                     //wram[index & 0x1FFF] = newValue
                     break
@@ -266,8 +258,20 @@ class MMU {
                     switch(index) {
                     case 0xFE00..<0xFF00:
                         // TODO: this holds sprite information
-                        GPU.OAM[index & 0xA0] = newValue
-                        break
+                        let spriteNum = index / 4
+                        switch index % 4 {
+                        case 0:
+                            GPU.OAM[spriteNum].y = newValue - 16
+                        case 1:
+                            GPU.OAM[spriteNum].x = newValue - 8
+                        case 2:
+                            GPU.OAM[spriteNum].tileNum = newValue
+                        case 3:
+                            GPU.OAM[spriteNum].attributes = newValue
+                        default:
+                            fatalError()
+                        }
+
                     case 0xFF00:
                         MMU.FF00 = newValue
                     case 0xFF01:
@@ -309,14 +313,22 @@ class MMU {
                         // scroll X
                         GPU.scrollX = newValue
                     case 0xFF44:
-                        GPU.currentLineRegister = newValue
+                        //GPU.currentLineRegister = newValue
+                        break
                     case 0xFF45:
                         GPU.LYC = newValue
                     case 0xFF46:
                         // DMA transfer and starting address page 62
                         let startAddr = UInt16(newValue) << 8
-                        for (index, addr) in (startAddr..<startAddr+40).enumerated() {
-                            GPU.OAM[index] = MMU.mmu[addr]
+                        for (spriteNum, addr) in stride(from: startAddr, to: startAddr + 40 * 4, by: 4).enumerated() {
+                            let y = self[addr]
+                            let x = self[addr + 1]
+                            let tileNum = self[addr+2]
+                            let attrib = self[addr+3]
+                            GPU.OAM[spriteNum].y = y &- 16
+                            GPU.OAM[spriteNum].x = x &- 8
+                            GPU.OAM[spriteNum].tileNum = tileNum
+                            GPU.OAM[spriteNum].attributes = attrib
                         }
                     case 0xFF47:
                         //pallete selector p 57 of dmg manual
@@ -335,7 +347,8 @@ class MMU {
                     case 0xFF4F:
                         // vram bank switching
                         // todo let the GPU do bank switching, these should be private
-                        GPU.activeVRAMbank = withUnsafeMutablePointer(to: &GPU.VRAMbanks[newValue], {$0})
+                        //GPU.activeVRAMbank = withUnsafeMutablePointer(to: &GPU.VRAMbanks[newValue], {$0})
+                        GPU.VRAMbankIndex = Int(newValue)
                         break
                     case 0xFF68:
                         // specifices a bg write
@@ -351,7 +364,8 @@ class MMU {
                         break
                     case 0xFF70:
                         let bank = newValue == 0 ? 1 : newValue
-                        MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
+                        //MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
+                        MMU.WRAMbankIndex = Int(bank)
                     case 0xFF80..<0xFFFF:
                         iram[index & 0x007F] = newValue
                     case 0xFFFF:
@@ -369,61 +383,6 @@ class MMU {
         }
     }
     
-    /*func fetchWord(at index: UInt16) -> UInt16 {
-        switch(index & 0xF000) {
-        case 0:
-            if(bios_mode) {
-                guard (index < 0x100) else { assert(false) }
-                return bios.withUnsafeBytes { return $0[Int(index)] }
-            } else if(index == 0x100) {
-                bios_mode = false
-            }
-            fallthrough
-        case 0x1...0x3:
-            return bank0.withUnsafeBytes { return $0[Int(index)] }
-        case 0x4...0x7:
-            // this only supports ROM ONLY
-            // to support MBC1 for tetris we need switchable banks or something of that nature
-            // also, can only determine how data should be stored at emulation time
-            switch cartridge_type {
-            case .ROM_only:
-                return bank1.withUnsafeBytes { return $0[Int(index & 0x3FFF)] }
-            default:
-                return 0
-            }
-            
-        case 0x8...0x9:
-            return vram.withUnsafeBytes { return $0[Int(index & 0x1FFF)] }
-        case 0xA...0xB:
-            // TODO: implement external RAM
-            return 0
-        case 0xC...0xD:
-            return wram.withUnsafeBytes { return $0[Int(index & 0x1FFF)] }
-        case 0xE...0xF:
-            if (index < 0xFE00) {
-                return wram.withUnsafeBytes { return $0[Int(index & 0x1FFF)] }
-            } else {
-                switch(index) {
-                case 0xFE00..<0xFF00:
-                    // TODO: this holds sprite information
-                    fallthrough
-                case 0xFF00..<0xFF80:
-                    // TODO: this must interface with memory mapped IO somehow
-                    fallthrough
-                case 0xFF80..<0xFFFF:
-                    return iram.withUnsafeBytes { return $0[Int(index & 0x007F)] }
-                case 0xFFFF:
-                    return interruptEnable ? 1 : 0
-                default:
-                    // this should never execute
-                    return 0
-                }
-            }
-        default:
-            // this should never execute
-            return 1
-        }
-    }*/
 }
 
 extension Array {

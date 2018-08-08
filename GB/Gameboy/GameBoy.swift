@@ -47,12 +47,18 @@ class GameBoy {
     
     var nextFrame: Data {
         get {
-            //GPU.textureData = Data(repeating: 0xFF, count: 160*144*4)
-            var elapsedCycles: UInt = 0
-            while elapsedCycles < 69905 {
+            //GPU.textureData = Data(repeating: 0x00, count: 160*144*4)
+            
+            while !GPU.isReady {
+                let _ = execInstruc()
+            }
+            GPU.isReady = false
+            return GPU.textureData
+            /*var elapsedCycles: UInt = 0
+            while elapsedCycles < 70224 {
                 elapsedCycles += execInstruc()
             }
-            return GPU.textureData
+            return GPU.textureData*/
             
         }
         set {
