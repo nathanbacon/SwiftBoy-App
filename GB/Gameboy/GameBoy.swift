@@ -13,6 +13,8 @@ class GameBoy {
     
     static var mmu: MMU = MMU.mmu
     
+    var inputController: InputController!
+    
     var cart: Cartridge
     
     init() {

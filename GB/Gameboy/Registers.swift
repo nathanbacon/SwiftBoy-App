@@ -35,7 +35,16 @@ struct Registers {
     var SP: UInt16 = 0xFFFE
     var I: UInt8 = 0
     var R: UInt8 = 0
-    var PC: UInt16 = 0x100
+    var PC: UInt16 = 0x100 {
+        didSet {
+            /*if ((0xE000..<0xFF80).contains(Int(CPU.registers.PC))) {
+                fatalError("\(oldValue) \(CPU.registers.PC)")
+            }*/
+            /*if CPU.registers.PC == 0x3d9f {
+                fatalError("A \(String(CPU.registers.A, radix: 16)) HL \(String(CPU.registers.HL, radix: 16)) \(String(CPU.registers.DE, radix: 16)) \(String(CPU.registers.E, radix: 16))")
+            }*/
+        }
+    }
     
     struct Flags {
         var zero: Bool = false

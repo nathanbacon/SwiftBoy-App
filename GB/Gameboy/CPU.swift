@@ -47,9 +47,13 @@ class CPU {
             return 4
         } else {
             CPU.prevInstCycles = 0
+            /*if (0x7880...0x789D).contains(CPU.registers.PC) {
+                print("\(CPU.registers.A)")
+            }*/
             CPU.fetchInstruction()()
-            totalInstructions += 1
+            //totalInstructions += 1
             return prevInstCycles
+            //return 32
         }
         
     }
@@ -147,6 +151,29 @@ class CPU {
             
         }
     }
+    
+    static func fetchInstruction() -> ()->() {
+        if (0xFF00..<0xFF80).contains(Int(CPU.registers.PC)) || (0xE000..<0xFF00).contains(Int(CPU.registers.PC)) {
+            fatalError("\(CPU.registers.PC)")
+        }
+        let opcode = CPU.mmu[CPU.registers.PC]
+        CPU.registers.PC += 1
+        return CPU.basicTable[opcode]
+        
+    }
+    
+    static func readByteImmediate() -> UInt8 {
+        let immed = CPU.mmu[CPU.registers.PC]
+        CPU.registers.PC += 1
+        return immed
+    }
+    
+    static func readWordImmediate() -> UInt16 {
+        let h = CPU.mmu[CPU.registers.PC + 1]
+        let l = CPU.mmu[CPU.registers.PC]
+        CPU.registers.PC += 2
+        return (UInt16(h) << 8) | UInt16(l)
+    }
 
     static let basicTable: Array<()->()> = [
         I(.NOOP), // 0x00 -> NOP
@@ -203,7 +230,7 @@ class CPU {
         // TODO fix comments for the opcode description
         I(  .JR,    .NC_flag,    .Immed8), // 0x30 -> JR NC, r8
         I(  .LD16,    .SP,    .Immed16), // 0x31 -> LD SP, d16
-        I(  .LD8,    .Mem(.HLd),    .Immed8), // 0x32 -> LD (HL-), A
+        I(  .LD8,    .Mem(.HLd),    .A), // 0x32 -> LD (HL-), A
         I(  .INC16,    .SP,    nil), // 0x33 -> INC HL
         I(  .INC8,    .Mem(.HL),    nil), // 0x34 -> INC H
         I(  .DEC8,    .Mem(.HL),    nil), // 0x35 -> DEC H
@@ -396,7 +423,7 @@ class CPU {
         I(  .PUSH,    .HL), // 0xE5
         I(  .AND,    .Immed8), // 0xE6
         I(  .RST,    .Number(0x20)), // 0xE7
-        I(  .ADD8,    .SP,    .Immed8), // 0xE8
+        I(  .ADD16,    .SP,    .Immed8), // 0xE8
         I(  .JP, .Mem(.HL)), // 0xE9
         I(  .LD8,    .Mem(.Immed16),    .A), // 0xEA
         I(  .UNIMPLEMENTED), // 0xEB
@@ -697,26 +724,7 @@ class CPU {
         I(  .SET, .Number(7),   .A), // 0x<#code#>
     ]
     
-    static func fetchInstruction() -> ()->() {
-        
-        let opcode = CPU.mmu[CPU.registers.PC]
-        CPU.registers.PC += 1
-        return CPU.basicTable[opcode]
-        
-    }
-    
-    static func readByteImmediate() -> UInt8 {
-        let immed = CPU.mmu[CPU.registers.PC]
-        CPU.registers.PC += 1
-        return immed
-    }
-    
-    static func readWordImmediate() -> UInt16 {
-        let h = CPU.mmu[CPU.registers.PC + 1]
-        let l = CPU.mmu[CPU.registers.PC]
-        CPU.registers.PC += 2
-        return (UInt16(h) << 8) | UInt16(l)
-    }
+
 
 
 }
@@ -732,7 +740,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
     case .NOOP:
         exec = { CPU.prevInstCycles += 4 }
     case .STOP:
-        exec = { CPU.prevInstCycles += 4;fatalError() }
+        exec = { CPU.prevInstCycles += 4 }
     case .LDH:
         fallthrough
     case .LD8:
@@ -794,19 +802,21 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
     case .ADC:
         let adder: (UInt8, UInt8) -> UInt8 = { a, b in
             let carry: UInt8 = CPU.registers.flags.carry ? 1 : 0
-            let c = a.addingReportingOverflow(b &+ carry)
-            CPU.registers.flags.carry = c.overflow
+            let firstAddition = b.addingReportingOverflow(carry)
+            let secondAddition = a.addingReportingOverflow(firstAddition.partialValue)
+            CPU.registers.flags.carry = secondAddition.overflow || firstAddition.overflow
             CPU.registers.flags.halfCarry = ((a & 0xF) + (b & 0xF) + carry) & 0x10 > 0
             CPU.registers.flags.subtract = false
-            CPU.registers.flags.zero = c.partialValue == 0
-            return c.partialValue
+            CPU.registers.flags.zero = secondAddition.partialValue == 0
+            return secondAddition.partialValue
         }
         exec = generateBinOp8(adder, arg1!, arg2!)
     case .SBC:
         let subtracter: (UInt8, UInt8) -> UInt8 = { a, b in
             let carry: UInt8 = CPU.registers.flags.carry ? 1 : 0
-            let c = a.subtractingReportingOverflow(b &+ carry)
-            CPU.registers.flags.carry = c.overflow
+            let firstAddition = b.addingReportingOverflow(carry)
+            let c = a.subtractingReportingOverflow(firstAddition.partialValue)
+            CPU.registers.flags.carry = c.overflow || firstAddition.overflow
             CPU.registers.flags.halfCarry = ((a & 0xF) &- (b & 0xF) &- carry) & 0x10 > 0
             CPU.registers.flags.subtract = true
             CPU.registers.flags.zero = c.partialValue == 0
@@ -859,7 +869,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
     case .CP:
         let cp: (UInt8, UInt8) -> UInt8 = { a, b in
             CPU.registers.flags.zero = a == b
-            CPU.registers.flags.halfCarry = 0x00FF & a < 0x00FF & b
+            CPU.registers.flags.halfCarry = 0x000F & a < 0x000F & b
             CPU.registers.flags.carry = a < b
             CPU.registers.flags.subtract = true
             return a
@@ -869,85 +879,92 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         let swap: (UInt8) -> UInt8 = { a in
             let l = a & 0x0F
             let h = a & 0xF0
+            let b = (l << 4) | (h >> 4)
+            CPU.registers.flags.zero = b == 0
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.carry = false
+            CPU.registers.flags.subtract = false
             return (l << 4) | (h >> 4)
         }
         exec = generateUnaryOp8(swap, arg1!)
     case .RLCA:
         exec = {
-            CPU.registers.flags.carry = (0b10000000 & CPU.registers.A) > 0
-            CPU.registers.A <<= 1
-            if CPU.registers.flags.carry {
-                CPU.registers.A |= 1
-            }
+            let rotate = CPU.registers.A.rotatingLeftCircular()
+            CPU.registers.A = rotate.result
+            CPU.registers.flags.carry = rotate.carry
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.prevInstCycles = 4
         }
     case .RRCA:
         exec = {
-            CPU.registers.flags.carry = (0b00000001 & CPU.registers.A) > 0
-            CPU.registers.A <<= 1
-            if CPU.registers.flags.carry {
-                CPU.registers.A |= 0b10000000
-            }
+            let rotate = CPU.registers.A.rotatingRightCircular()
+            CPU.registers.A = rotate.result
+            CPU.registers.flags.carry = rotate.carry
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.prevInstCycles = 4
         }
     case .RRA:
         exec = {
-            CPU.registers.flags.carry = (0b00000001 & CPU.registers.A) > 0
-            CPU.registers.A >>= 1
+            let rotate = CPU.registers.A.rotatingRightThrough(carry: CPU.registers.flags.carry)
+            CPU.registers.A = rotate.result
+            CPU.registers.flags.carry = rotate.carry
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.prevInstCycles = 4
         }
     case .RLA:
         exec = {
-            CPU.registers.flags.carry = (0b10000000 & CPU.registers.A) > 0
-            CPU.registers.A <<= 1
+            let rotate = CPU.registers.A.rotatingLeftThrough(carry: CPU.registers.flags.carry)
+            CPU.registers.A = rotate.result
+            CPU.registers.flags.carry = rotate.carry
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.prevInstCycles = 4
         }
     case .RL:
         let rotateLeft: (UInt8) -> UInt8 = { a in
-            let carry: UInt8 = CPU.registers.flags.carry ? 0x80 : 0x00
-            CPU.registers.flags.carry = (0x80 & a) > 0
-            CPU.registers.flags.zero = a == 0x80
+            let rotate = a.rotatingLeftThrough(carry: CPU.registers.flags.carry)
+            CPU.registers.flags.carry = rotate.carry
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
-            return (a << 1) | carry
+            return rotate.result
         }
         exec = generateUnaryOp8(rotateLeft, arg1!)
     case .RLC:
         let rotateLeft: (UInt8) -> UInt8 = { a in
-            CPU.registers.flags.carry = (0b10000000 & a) > 0
-            if CPU.registers.flags.carry {
-                CPU.registers.A |= 0x80
-            }
+            let rotate = a.rotatingLeftCircular()
+            CPU.registers.flags.carry = rotate.carry
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
-            return a << 1
+            return rotate.result
         }
         exec = generateUnaryOp8(rotateLeft, arg1!)
     case .RR:
         let rotateRight: (UInt8) -> UInt8 = { a in
-            let carry: UInt8 = CPU.registers.flags.carry ? 0x80 : 0x00
-            CPU.registers.flags.carry = (0x01 & a) > 0
-            CPU.registers.flags.zero = a == 0x01
+            let rotate = a.rotatingRightThrough(carry: CPU.registers.flags.carry)
+            CPU.registers.flags.carry = rotate.carry
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
-            return (a >> 1) | carry
+            return rotate.result
         }
         exec = generateUnaryOp8(rotateRight, arg1!)
     case .RRC:
         let rotateRightCarry: (UInt8) -> UInt8 = { a in
-            CPU.registers.flags.carry = (0x01 & a) > 0
-            CPU.registers.flags.zero = a == 0x01
+            let rotate = a.rotatingRightCircular()
+            CPU.registers.flags.carry = rotate.carry
+            CPU.registers.flags.zero = rotate.result == 0
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.subtract = false
-            return (a >> 1)
+            return rotate.result
         }
         exec = generateUnaryOp8(rotateRightCarry, arg1!)
     case .SRL:
@@ -1030,6 +1047,9 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         if case .Immed16? = arg1 {
             exec = {
                 let i = CPU.readWordImmediate()
+                /*if i == 0x36e0 && CPU.registers.A > 0 {
+                    print("\(CPU.registers.PC) \(CPU.registers.SP)")
+                }*/
                 pushPC()
                 CPU.registers.PC = i
                 CPU.prevInstCycles = 24
@@ -1146,9 +1166,132 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.isHalted = true
             CPU.prevInstCycles = 4
         }
+    case .DAA:
+        exec = {
+            let a = CPU.registers.A
+            //let l = a & 0x0F
+            //let h = (a & 0xF0) >> 4
+            var num: UInt16 = UInt16(a)
+            // this algorithm was lifted from MAME
+            if !CPU.registers.flags.subtract {
+                if CPU.registers.flags.halfCarry || (num & 0x0F) > 9 {
+                    num += 6
+                }
+                if CPU.registers.flags.carry || num > 0x9F {
+                    num += 0x60
+                }
+            } else {
+                if CPU.registers.flags.halfCarry {
+                    num = (num &- 6) & 0xFF
+                    /*if !CPU.registers.flags.carry {
+                        num &= 0xFF
+                    }*/
+                }
+                if CPU.registers.flags.carry {
+                    num = num &- 0x60
+                }
+            }
+            
+            
+            
+            CPU.registers.flags.halfCarry = false
+            CPU.registers.flags.carry = (num & 0x100) > 0
+            CPU.registers.flags.zero = num == 0
+            CPU.registers.A = UInt8(num & 0xFF)
+            
+            /*if CPU.registers.flags.subtract {
+                
+                if CPU.registers.flags.carry {
+                    
+                    if CPU.registers.flags.halfCarry {
+                        if (0x6...0xF).contains(h) && (0x6...0xF).contains(l) {
+                            num = 0x9A
+                        }
+                    } else {
+                        if (0x7...0xF).contains(h) && (0x0...0x9).contains(l) {
+                            num = 0xA0
+                        }
+                    }
+                    
+                } else {
+                    
+                    if CPU.registers.flags.halfCarry {
+                        if (0x0...0x8).contains(h) && (0x6...0xF).contains(l) {
+                            // CY = 0 H = 1
+                            num = 0xFA
+                        }
+                    } else {
+                        // CY = 0 H = 0
+                        if (0x0...0x9).contains(h) && (0x0...0x9).contains(l) {
+                            num = 0x00
+                        }
+                    }
+                    
+                }
+                
+            } else {
+                
+                if CPU.registers.flags.carry {
+                    // CY = 1
+                    if CPU.registers.flags.halfCarry {
+                        // CY = 1 H = 1
+                        if (0x0...0x3).contains(h) && (0x0...0x3).contains(l) {
+                            num = 0x66
+                        }
+                    } else {
+                        // CY = 1 H = 0
+                        if (0x0...0x2).contains(h) {
+                            if (0x0...0x9).contains(l) {
+                                num = 0x60
+                            } else {
+                                num = 0x66
+                            }
+                        }
+                    }
+                } else {
+                    // CY = 0
+                    if CPU.registers.flags.halfCarry {
+                        // CY = 0 H = 1
+                        if (0x0...0x9).contains(h) {
+                            if (0x0...0x3).contains(l) {
+                                num = 0x06
+                            }
+                        } else {
+                            if (0x0...0x3).contains(l) {
+                                num = 0x66
+                            }
+                        }
+                        
+                    } else {
+                        // CY = 0 H = 0
+                        if (0x0...0x9).contains(h) {
+                            if (0x0...0x9).contains(l) {
+                                num = 0x00
+                            } else {
+                                num = 0x06
+                            }
+                        } else {
+                            if (0x0...0x9).contains(l) {
+                                num = 0x60
+                            } else {
+                                num = 0x66
+                            }
+                        }
+                        
+                    }
+                }
+
+                CPU.registers.flags.carry = (0x60 & num) > 0
+                
+            }
+            
+            CPU.registers.A = CPU.registers.A &+ num*/
+        
+        }
     default:
         exec = {
-            fatalError("Unimplemented operation! \(operation) \(arg1!) \(arg2!)")
+            //fatalError("\(CPU.registers.PC)")
+            fatalError("Unimplemented operation! \(operation) \(String(describing: arg1)) \(String(describing: arg2))")
         }
     }
     
@@ -1285,7 +1428,7 @@ func generateUnaryOp8(_ operation: @escaping (UInt8) -> (UInt8), _ dest: Argumen
             CPU.prevInstCycles += clocks
         }
     case .Mem(.HL):
-        clocks += 4
+        clocks += 8
         return {
             let addr = CPU.registers.HL
             CPU.mmu[addr] = operation(CPU.mmu[addr])
@@ -1451,6 +1594,7 @@ func generateBinOp8(_ operation :@escaping (UInt8, UInt8)->(UInt8),_ dest: Argum
             CPU.prevInstCycles = clocks
             CPU.registers.L = operation(CPU.registers.L, reader())
         }
+    
         
     case .Mem(let target):
         clocks += 4
@@ -1497,7 +1641,8 @@ func generateBinOp8(_ operation :@escaping (UInt8, UInt8)->(UInt8),_ dest: Argum
         case .Immed16:
             return {
                 CPU.prevInstCycles = clocks
-                CPU.mmu[UInt16(CPU.readWordImmediate())] = operation(0, reader())
+                let a = UInt16(CPU.readWordImmediate())
+                CPU.mmu[a] = operation(0, reader())
             }
         default:
             return { fatalError() }
@@ -1540,6 +1685,14 @@ func generateBinOp16(_ operation :@escaping (UInt16, UInt16)->(UInt16),_ dest: A
             CPU.registers.flags.halfCarry = (((CPU.registers.SP & 0x0FFF) + (signExt & 0x0FFF)) & 0xF000) > 0
             return res.partialValue
         }
+    case .Immed8:
+        clocks += 12
+        reader = {
+            let immed = CPU.readByteImmediate()
+            let neg = (0x80 & immed) > 0 // use neg for sign extending
+            let signExt = UInt16(immed) | (neg ? 0xFF00 : 0)
+            return signExt
+        }
     default:
         reader = { fatalError("Invalid") }
     }
@@ -1576,7 +1729,7 @@ func generateBinOp16(_ operation :@escaping (UInt16, UInt16)->(UInt16),_ dest: A
                 // this reader is definitely the stack pointer
                 let word = reader()
                 let lower = UInt8(word & 0x00FF)
-                let upper = UInt8(word & 0xFF00)
+                let upper = UInt8((word >> 8) & 0x00FF)
                 let addr = CPU.readWordImmediate()
                 CPU.mmu[addr] = lower
                 CPU.mmu[addr + 1] = upper
@@ -1602,5 +1755,38 @@ func I(_ operation: InstType) -> ()->() {
     return I(operation, nil, nil)
 }
 
-
+extension UInt8 {
+    func rotatingLeft () -> (result: UInt8, carry: Bool) {
+        let c = (self & 0x80) > 0
+        let r = self << 1
+        return (r, c)
+    }
+    
+    func rotatingRight() -> (result: UInt8, carry: Bool) {
+        let c = (self & 0x01) > 0
+        let r = self >> 1
+        return (r, c)
+    }
+    
+    func rotatingRightCircular() -> (result: UInt8, carry: Bool) {
+        let res = self.rotatingRight()
+        return ((res.result | (res.carry ? 0x80 : 0x00)), res.carry)
+    }
+    
+    func rotatingLeftCircular() -> (result: UInt8, carry: Bool) {
+        let res = self.rotatingLeft()
+        return ((res.result | (res.carry ? 0x01 : 0x00)), res.carry)
+    }
+    
+    func rotatingRightThrough(carry: Bool) -> (result: UInt8, carry: Bool) {
+        let res = self.rotatingRight()
+        return ((res.result | (carry ? 0x80 : 0x00)), res.carry)
+    }
+    
+    func rotatingLeftThrough(carry: Bool) -> (result: UInt8, carry: Bool) {
+        let res = self.rotatingLeft()
+        return ((res.result | (carry ? 0x01 : 0x00)), res.carry)
+    }
+    
+}
 

@@ -1,11 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="J85-oL-lza">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="14113" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="y80-qw-ggp">
     <device id="retina5_9" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14088"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -317,6 +318,168 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="wfD-2l-TO4" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2065" y="22"/>
+        </scene>
+        <!--Gameboy Interface View Controller-->
+        <scene sceneID="q85-6s-7wb">
+            <objects>
+                <viewController id="y80-qw-ggp" customClass="GameboyInterfaceViewController" customModule="GB" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="H4l-ED-WZj">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="JBy-0l-wkK">
+                                <rect key="frame" x="0.0" y="44" width="375" height="338"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="JBy-0l-wkK" secondAttribute="height" multiplier="160:144" id="Ddp-Kd-QSX"/>
+                                </constraints>
+                                <connections>
+                                    <segue destination="RcK-uC-OwL" kind="embed" id="G9J-8G-FBJ"/>
+                                </connections>
+                            </containerView>
+                            <containerView opaque="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="KcV-eE-Ffa">
+                                <rect key="frame" x="0.0" y="382" width="375" height="430"/>
+                                <connections>
+                                    <segue destination="ULi-Ft-q7G" kind="embed" id="xtW-Hd-jLK"/>
+                                </connections>
+                            </containerView>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <constraints>
+                            <constraint firstItem="JBy-0l-wkK" firstAttribute="leading" secondItem="H4l-ED-WZj" secondAttribute="leading" id="4Sg-cW-CPD"/>
+                            <constraint firstItem="KcV-eE-Ffa" firstAttribute="top" secondItem="JBy-0l-wkK" secondAttribute="bottom" id="7JT-rG-6sA"/>
+                            <constraint firstAttribute="trailing" secondItem="JBy-0l-wkK" secondAttribute="trailing" id="Cge-1h-JXe"/>
+                            <constraint firstItem="JBy-0l-wkK" firstAttribute="top" secondItem="2Dv-NZ-qK2" secondAttribute="top" id="DhM-eN-4s7"/>
+                            <constraint firstItem="KcV-eE-Ffa" firstAttribute="leading" secondItem="2Dv-NZ-qK2" secondAttribute="leading" id="WyW-xv-lo5"/>
+                            <constraint firstItem="KcV-eE-Ffa" firstAttribute="trailing" secondItem="2Dv-NZ-qK2" secondAttribute="trailing" id="eES-PS-VRc"/>
+                            <constraint firstAttribute="bottom" secondItem="KcV-eE-Ffa" secondAttribute="bottom" id="iKi-VN-AlN"/>
+                            <constraint firstItem="JBy-0l-wkK" firstAttribute="top" secondItem="2Dv-NZ-qK2" secondAttribute="top" id="vB6-ht-Yn0"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="2Dv-NZ-qK2"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="RgR-aw-mZi" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2940" y="21.428571428571431"/>
+        </scene>
+        <!--Display View Controller-->
+        <scene sceneID="w2i-pj-1PU">
+            <objects>
+                <viewController id="RcK-uC-OwL" customClass="GBDisplayViewController" customModule="GB" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="IXC-ei-DuC" customClass="MTKView">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="338"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <viewLayoutGuide key="safeArea" id="wqf-d2-QI2"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="lbc-wX-jkr" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="3849" y="-255"/>
+        </scene>
+        <!--Input View Controller-->
+        <scene sceneID="RCG-Kv-voP">
+            <objects>
+                <viewController id="ULi-Ft-q7G" customClass="InputViewController" customModule="GB" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="N7n-df-PTM">
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="430"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ju9-BG-EKB">
+                                <rect key="frame" x="306" y="105" width="30" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833595693002" green="1" blue="0.35647568305248767" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="A"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="Fau-tb-qUg"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="RGW-eD-NdF"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="5hV-Un-Iqg"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="lCN-Vd-Cpu">
+                                <rect key="frame" x="276" y="192" width="30" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="B"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="3Ri-f9-uY9"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="hSM-bo-wWr"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="PD3-RW-gRU"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0z3-yG-xJR">
+                                <rect key="frame" x="90" y="104" width="30" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Up"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="Ip1-Cx-1ya"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="agh-bW-pva"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="89K-yH-xyU"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="5yg-DE-b9S">
+                                <rect key="frame" x="86" y="191" width="39" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Down"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="2P7-CP-SNc"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="eot-DY-ceX"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="GPB-ex-8qs"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="onT-Sb-Va7">
+                                <rect key="frame" x="38" y="146" width="30" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Left"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="j9O-YR-Kkl"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="sPc-Fy-hIk"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="tgl-Mc-AdJ"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="7C6-hx-Bst">
+                                <rect key="frame" x="140" y="146" width="36" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Right"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="2So-pf-Fmh"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="Qi3-vJ-S8c"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="YWz-G4-lON"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="TOx-Oe-kN4">
+                                <rect key="frame" x="272" y="294" width="34" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Start"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="dpy-Oa-j1w"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="quv-k4-X17"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="3Yi-X5-QZK"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="FCl-mM-ABD">
+                                <rect key="frame" x="83" y="294" width="44" height="30"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" red="0.50101833600000001" green="1" blue="0.3564756831" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                                <state key="normal" title="Select"/>
+                                <connections>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpInside" id="JFR-tW-IJh"/>
+                                    <action selector="depressed:" destination="ULi-Ft-q7G" eventType="touchUpOutside" id="ffa-vf-odS"/>
+                                    <action selector="pressed:" destination="ULi-Ft-q7G" eventType="touchDown" id="XCF-7V-Opx"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                        <viewLayoutGuide key="safeArea" id="8Di-HC-MPL"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="7DS-Xb-KrC" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2941.5999999999999" y="718.9655172413793"/>
         </scene>
     </scenes>
 </document>

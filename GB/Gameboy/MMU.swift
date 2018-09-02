@@ -46,23 +46,6 @@ class MMU {
     
     //var externRAM: UnsafeMutablePointer<Data>?
     var iram: Data = Data(repeating: 0, count: 0x80)
-
-    // MARK: FLAGS/REGISTERS
-    
-    static var DMAinProgress: Bool = false
-    
-    static var HDMA5: UInt8 {
-        set {
-            //let addr = HDMA5 & 0x7F
-        }
-        
-        get {
-            return DMAinProgress ? 0x00 : 0x80
-        }
-    }
-    
-
-    static var FF00: UInt8 = 0
     
     subscript(index: UInt16) -> UInt8 {
         get {
@@ -103,7 +86,7 @@ class MMU {
                 //return MMU.activeWRAMbank.pointee[index & 0x0FFF]
                 return MMU.WRAMbanks[MMU.WRAMbankIndex][index & 0x0FFF]
             case 0xE:
-                fatalError()
+                fatalError("\(index)")
             case 0xF:
                 
                 switch(index) {
@@ -122,18 +105,21 @@ class MMU {
                     default:
                         fatalError()
                     }
-
+                case 0xFEA0..<0xFF00:
+                    fatalError("\(index)")
                 case 0xFF00:
                     // input/output ports
                     // the 4 lsb of this return value should signal that nothing is pressed
-                    return 0xFF
+                    
+                    return InputViewController.inputController.register
                     //return MMU.FF00 == 0x30 ? 0xFE : 0xFF
                 case 0xFF01:
                     // serial cable communications p 28
-                    break
+                    return 0
                 case 0xFF02:
                     // serial cable communications p 28
-                    break
+                    // 0x7E was the value of this register in the emulator
+                    return 0x7E
                 case 0xFF04:
                     // divider p 24
                     return Timer.divider
@@ -169,12 +155,16 @@ class MMU {
                 
                 case 0xFF45:
                     return GPU.LYC
+                case 0xFF4A:
+                    return GPU.windowY
+                case 0xFF4B:
+                    return GPU.windowX
                 case 0xFF4D:
                     // cpu speed switching p 34
-                    break
+                    return 0
                 case 0xFF4F:
                     // vram bank switching getter
-                    break
+                    return UInt8(GPU.VRAMbankIndex)
                 case 0xFF55:
                     // Transfer start and number of bytes to transfer
                     break
@@ -206,14 +196,17 @@ class MMU {
                 
             default:
                 // this should never execute
-                return 1
+                return 0
             }
             
-            fatalError()
+            fatalError("\(index)")
         }
         
         set {
             
+            /*if index == 0xd60c {
+                print("\(newValue) \(MMU.WRAMbankIndex) \(CPU.registers.PC)")
+            }*/
             switch(index >> 12) {
             case 0:
                 fallthrough
@@ -243,6 +236,9 @@ class MMU {
             case 0xB:
                 cartridge!.writeRam(at: index & 0x1FFF, newValue: newValue)
             case 0xC:
+                /*if index == 0xC103 {
+                    print("C103 \(CPU.registers.PC)")
+                }*/
                 MMU.WRAMbanks[0][index & 0x0FFF] = newValue
             case 0xD:
                 //wram[index & 0x1FFF] = newValue
@@ -269,11 +265,11 @@ class MMU {
                         case 3:
                             GPU.OAM[spriteNum].attributes = newValue
                         default:
-                            fatalError()
+                            fatalError("\(index)")
                         }
 
                     case 0xFF00:
-                        MMU.FF00 = newValue
+                        InputViewController.inputController.register = newValue
                     case 0xFF01:
                         // serial transfer data
                         // page 28
@@ -337,6 +333,10 @@ class MMU {
                         fallthrough
                     case 0xFF49:
                         break
+                    case 0xFF4A:
+                        GPU.windowY = newValue
+                    case 0xFF4B:
+                        GPU.windowX = newValue
                     case 0xFF55:
                         // Transfer start and number of bytes to transfer
                         
@@ -363,10 +363,13 @@ class MMU {
                         // obj write data
                         break
                     case 0xFF70:
-                        let bank = newValue == 0 ? 1 : newValue
+                        let bank = newValue == 0 ? 1 : newValue & 0x07
                         //MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
                         MMU.WRAMbankIndex = Int(bank)
                     case 0xFF80..<0xFFFF:
+                        /*if index == 0xFFAF {
+                            print(CPU.registers.PC)
+                        }*/
                         iram[index & 0x007F] = newValue
                     case 0xFFFF:
                         CPU.Interrupt.IE = newValue

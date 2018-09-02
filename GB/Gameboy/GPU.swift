@@ -18,6 +18,8 @@ struct GPU {
     static var textureData = Data(repeating: 0x00, count: 160*144*4)
     static var backgroundTransparent = Array<Bool>(repeating: false, count: 160*144)
     static var claimedBySprite = Array<Bool>(repeating: false, count: 160*144)
+    
+    static var tileDump = Data(repeating: 0x00, count: 16 * 8 * 16 * 8 * 4)
    
     //static var screenData = Array<(red: UInt8, green: UInt8, blue: UInt8)>(repeating: (0,0,0), count: 160*144)
     
@@ -261,17 +263,20 @@ struct GPU {
         }
         
         if scanLineCycles >= 456 {
-            currentLine += 1
+            
             
             scanLineCycles = 0
             if currentLine == 144 {
                 CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.VBlank)
                 isReady = true
             } else if currentLine > 153 {
+                //textureData = Data(repeating: 0, count: 160*144*4)
                 currentLine = 0
             } else if currentLine < 144 {
                 drawScanLine()
             }
+            
+            currentLine += 1
         }
     }
     
@@ -359,15 +364,22 @@ struct GPU {
         }
     }
     
+    /*private static func dumpBG() {
+        let startAddr = 0x0800
+        
+        for tileStart in stride(from: startAddr, to: 0x2000, by: 8 * 2) {
+            
+        }
+    }*/
+    
     private static func renderTiles() {
         var tileData: UInt16 = 0
         var backgroundMemory: UInt16 = 0
         var unsig = true
-        let usingWindow = LCDC.windowDisplayToggle && windowY <= scrollY
+        let usingWindow = LCDC.windowDisplayToggle && windowY <= currentLine
         
         if LCDC.BGWindowTileSelect {
             tileData = 0x0000
-            
         } else {
             tileData = 0x0800
             unsig = false
@@ -379,25 +391,35 @@ struct GPU {
             backgroundMemory = LCDC.BGTileMapSelect ? 0x1C00 : 0x1800
         }
         
-        let yPos: UInt16 = UInt16(!usingWindow ? scrollY + currentLine : currentLine - windowY)
+        let yPos: UInt16 = UInt16(!usingWindow ? scrollY &+ currentLine : currentLine &- windowY)
         let tileRow = UInt16(yPos/8)*32
-        let lineInTile = (yPos % 8) * 2
+        let lineInTile = UInt16(currentLine % 8) * 2
         /*for tileRow in stride(from: 0, to: 160, by: 8) {
           // this can be used as an optimization later on
         }*/
         
-        for pixel: UInt8 in 0..<160 {
-            let xPos = UInt16(usingWindow && pixel >= windowX ? pixel - windowX : pixel + scrollX)
-            
+        /*for tile: UInt8 in stride(from: 0, to: 160, by: 8) {
+            let xPos = UInt16(usingWindow && tile >= (windowX &+ 7) ? tile &+ (windowX &- 7) : tile &+ scrollX)
             let tileCol = xPos / 8
-            let tileNum = UInt8(VRAMbanks[VRAMbankIndex][(backgroundMemory + tileRow + tileCol)])
+            for pixel in tile..<(tile+8) {
+                
+            }
+        }*/
+        
+        for pixel: UInt8 in 0..<160 {
+            //let xPos = UInt16(usingWindow && pixel >= (windowX) ? pixel &- windowX : pixel &+ scrollX)
+            let xPos = UInt16((usingWindow && pixel >= (windowX &+ 7)) ? pixel &+ (windowX &- 7) : pixel &+ scrollX)
             
+            let tileCol = UInt16(xPos / 8)
+            let tileNum = UInt8(VRAMbanks[VRAMbankIndex][(backgroundMemory + tileRow + tileCol)])
+
             //let tileNum = UInt16(VRAMbanks[0][(backgroundMemory + tileRow + tileCol)])
 
             let tileLocation = tileData + (unsig ? UInt16(tileNum) * 16 : UInt16((tileNum &+ 128)) * 16)
-
-            
-            
+            /*if tileNum > 1 {
+                let a = tileLocation
+                //print(tileLocation)
+            }*/
             let lData = VRAMbanks[VRAMbankIndex][tileLocation + lineInTile]
             let hData = VRAMbanks[VRAMbankIndex][tileLocation + lineInTile + 1]
             
@@ -409,7 +431,7 @@ struct GPU {
             
             // will be high on the bit of data needed to select the color of the tile
             let colorSelector: UInt8 = 0x80 >> (pixel % 8)
-            let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00 | (colorSelector & lData) > 0 ? 0b01 : 0b00)
+            let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00) | ((colorSelector & lData) > 0 ? 0b01 : 0b00)
 
             //let color = getColor(from: shade)
 
@@ -446,5 +468,6 @@ struct GPU {
             //textureData[offset] = shade
         }
         
+    
     }
 }
