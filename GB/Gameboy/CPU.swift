@@ -773,7 +773,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         exec = generateUnaryOp8(decrementer, arg1!)
     case .DEC16:
         let decrementer: (UInt16) -> (UInt16) = { b in
-            return b &- 1
+            return b &+ UInt16(bitPattern: -1)
         }
         exec = generateUnaryOp16(decrementer, arg1!)
     case .ADD8:
@@ -868,9 +868,11 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         exec = generateBinOp8(xor, .A, arg1!)
     case .CP:
         let cp: (UInt8, UInt8) -> UInt8 = { a, b in
-            CPU.registers.flags.zero = a == b
-            CPU.registers.flags.halfCarry = 0x000F & a < 0x000F & b
-            CPU.registers.flags.carry = a < b
+            let sub = a.subtractingReportingOverflow(b)
+            let halfSub = (0x0F & a).subtractingReportingOverflow(0x0F & b)
+            CPU.registers.flags.zero = sub.partialValue == 0
+            CPU.registers.flags.halfCarry = halfSub.overflow
+            CPU.registers.flags.carry = sub.overflow
             CPU.registers.flags.subtract = true
             return a
         }
@@ -884,7 +886,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.halfCarry = false
             CPU.registers.flags.carry = false
             CPU.registers.flags.subtract = false
-            return (l << 4) | (h >> 4)
+            return b
         }
         exec = generateUnaryOp8(swap, arg1!)
     case .RLCA:
@@ -968,30 +970,35 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         }
         exec = generateUnaryOp8(rotateRightCarry, arg1!)
     case .SRL:
-        let shiftRight: (UInt8) -> UInt8 = { a in
-            CPU.registers.flags.carry = (a & 0x01) > 0
-            CPU.registers.flags.zero = a == 0x01
+        let shiftRight: (UInt8) -> UInt8 = {
+            let a = $0 >> 1
+            CPU.registers.flags.carry = ($0 & 0x01) > 0
+            CPU.registers.flags.zero = a == 0x0
             CPU.registers.flags.subtract = false
             CPU.registers.flags.halfCarry = false
-            return (a >> 1)
+            return a
         }
         exec = generateUnaryOp8(shiftRight, arg1!)
     case .SLA:
         let shiftLeft: (UInt8) -> UInt8 = {
+            let a = $0 << 1
             CPU.registers.flags.carry = ($0 & 0x80) > 0
-            CPU.registers.flags.zero = $0 == 0x80
+            CPU.registers.flags.zero = a == 0
             CPU.registers.flags.subtract = false
             CPU.registers.flags.halfCarry = false
-            return $0 << 1
+            return a
         }
         exec = generateUnaryOp8(shiftLeft, arg1!)
     case .SRA:
         let shiftRight: (UInt8) -> UInt8 = {
+            // TODO: Fix this so that msb is maintained
+            let bit7 = 0x80 & $0
+            let a = ($0 >> 1) | bit7
             CPU.registers.flags.carry = ($0 & 0x01) > 0
-            CPU.registers.flags.zero = $0 == 0x01
+            CPU.registers.flags.zero = a == 0
             CPU.registers.flags.subtract = false
             CPU.registers.flags.halfCarry = false
-            return $0 >> 1
+            return a
         }
         exec = generateUnaryOp8(shiftRight, arg1!)
     case .SCF:
@@ -1678,20 +1685,25 @@ func generateBinOp16(_ operation :@escaping (UInt16, UInt16)->(UInt16),_ dest: A
         clocks += 12
         reader = {
             let immed = CPU.readByteImmediate()
+            //let signedImmed = Int(Int8(bitPattern: immed))
+            //let result = CPU.registers.SP
             let neg = (0x80 & immed) > 0 // use neg for sign extending
             let signExt = UInt16(immed) | (neg ? 0xFF00 : 0)
             let res = CPU.registers.SP.addingReportingOverflow(signExt)
             CPU.registers.flags.carry = res.overflow
             CPU.registers.flags.halfCarry = (((CPU.registers.SP & 0x0FFF) + (signExt & 0x0FFF)) & 0xF000) > 0
+            CPU.registers.flags.zero = false
+            CPU.registers.flags.subtract = false
             return res.partialValue
         }
     case .Immed8:
         clocks += 12
         reader = {
             let immed = CPU.readByteImmediate()
-            let neg = (0x80 & immed) > 0 // use neg for sign extending
-            let signExt = UInt16(immed) | (neg ? 0xFF00 : 0)
-            return signExt
+            let signExtended = UInt16(bitPattern: Int16(Int8(bitPattern: immed)))
+            //let neg = (0x80 & immed) > 0 // use neg for sign extending
+            //let signExt = UInt16(immed) | (neg ? 0xFF00 : 0)
+            return signExtended
         }
     default:
         reader = { fatalError("Invalid") }

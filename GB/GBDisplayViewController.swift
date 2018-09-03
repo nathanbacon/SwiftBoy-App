@@ -23,7 +23,7 @@ class GBDisplayViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        metalView.preferredFramesPerSecond = 120
         metalView.device = MTLCreateSystemDefaultDevice()
         renderer = GBRenderer(device: metalView.device!, gameboy: gameboy)
         metalView.delegate = renderer

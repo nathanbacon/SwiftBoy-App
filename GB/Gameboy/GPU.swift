@@ -263,8 +263,6 @@ struct GPU {
         }
         
         if scanLineCycles >= 456 {
-            
-            
             scanLineCycles = 0
             if currentLine == 144 {
                 CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.VBlank)
@@ -305,7 +303,7 @@ struct GPU {
             let ySize: UInt8 = LCDC.spriteSize ? 16 : 8
             let xPos = sprite.x
             
-            guard yPos <= currentLine, currentLine < yPos &+ ySize, xPos &+ 8 >= 0 else { continue } // determine if the sprite is on the screen
+            guard yPos <= currentLine, currentLine < yPos &+ ySize, xPos &+ 8 >= 0 else { continue } // determine if the sprite is being rendered on the current scanline
             
             
             let tileLocation = sprite.tileNum
@@ -313,7 +311,7 @@ struct GPU {
 
             let charBank = sprite.VRAMBank & 0x01
 
-            let lineAddr = sprite.yFlip ? UInt16(tileLocation + 1) << 4 - UInt16(lineInSprite) * 2 : UInt16(tileLocation) << 4 + UInt16(lineInSprite) * 2
+            let lineAddr = sprite.yFlip ? (UInt16(tileLocation + 1) * 16) - (UInt16(lineInSprite) * 2) : (UInt16(tileLocation) * 16) + (UInt16(lineInSprite) * 2)
             
             let lData = VRAMbanks[charBank][lineAddr+1]
             let hData = VRAMbanks[charBank][lineAddr]
@@ -372,6 +370,8 @@ struct GPU {
         }
     }*/
     
+    
+    
     private static func renderTiles() {
         var tileData: UInt16 = 0
         var backgroundMemory: UInt16 = 0
@@ -393,44 +393,23 @@ struct GPU {
         
         let yPos: UInt16 = UInt16(!usingWindow ? scrollY &+ currentLine : currentLine &- windowY)
         let tileRow = UInt16(yPos/8)*32
-        let lineInTile = UInt16(currentLine % 8) * 2
-        /*for tileRow in stride(from: 0, to: 160, by: 8) {
-          // this can be used as an optimization later on
-        }*/
-        
-        /*for tile: UInt8 in stride(from: 0, to: 160, by: 8) {
-            let xPos = UInt16(usingWindow && tile >= (windowX &+ 7) ? tile &+ (windowX &- 7) : tile &+ scrollX)
-            let tileCol = xPos / 8
-            for pixel in tile..<(tile+8) {
-                
-            }
-        }*/
+        let lineInTile = UInt16(yPos % 8) * 2
+
         
         for pixel: UInt8 in 0..<160 {
             //let xPos = UInt16(usingWindow && pixel >= (windowX) ? pixel &- windowX : pixel &+ scrollX)
-            let xPos = UInt16((usingWindow && pixel >= (windowX &+ 7)) ? pixel &+ (windowX &- 7) : pixel &+ scrollX)
+            let xPos = UInt16((usingWindow && pixel >= (windowX &- 7)) ? pixel &+ (windowX &- 7) : scrollX &+ pixel)
             
             let tileCol = UInt16(xPos / 8)
             let tileNum = UInt8(VRAMbanks[VRAMbankIndex][(backgroundMemory + tileRow + tileCol)])
 
-            //let tileNum = UInt16(VRAMbanks[0][(backgroundMemory + tileRow + tileCol)])
-
             let tileLocation = tileData + (unsig ? UInt16(tileNum) * 16 : UInt16((tileNum &+ 128)) * 16)
-            /*if tileNum > 1 {
-                let a = tileLocation
-                //print(tileLocation)
-            }*/
+
             let lData = VRAMbanks[VRAMbankIndex][tileLocation + lineInTile]
             let hData = VRAMbanks[VRAMbankIndex][tileLocation + lineInTile + 1]
             
-            /*if tileNum == 0x19 {
-                print(tileNum)
-                print(tileLocation)
-                print("row \(tileRow) col \(tileCol)")
-            }*/
-            
             // will be high on the bit of data needed to select the color of the tile
-            let colorSelector: UInt8 = 0x80 >> (pixel % 8)
+            let colorSelector: UInt8 = 0x80 >> (UInt8(xPos) % 8)
             let shade = UInt8((colorSelector & hData) > 0 ? 0b10 : 0b00) | ((colorSelector & lData) > 0 ? 0b01 : 0b00)
 
             //let color = getColor(from: shade)
