@@ -30,11 +30,11 @@ struct Registers {
     var E: UInt8 = 0xD8
     var H: UInt8 = 0x01
     var L: UInt8 = 0x4D
-    var IX: UInt16 = 0
-    var IY: UInt16 = 0
+    //var IX: UInt16 = 0
+    //var IY: UInt16 = 0
     var SP: UInt16 = 0xFFFE
-    var I: UInt8 = 0
-    var R: UInt8 = 0
+    //var I: UInt8 = 0
+    //var R: UInt8 = 0
     var PC: UInt16 = 0x100 {
         didSet {
             /*if ((0xE000..<0xFF80).contains(Int(CPU.registers.PC))) {
@@ -75,7 +75,7 @@ struct Registers {
             return upper | lower
         }
         set {
-            A = UInt8((newValue & 0xFF00) >> 8)
+            A = UInt8(newValue >> 8)
             F = UInt8(newValue & 0x00FF)
         }
     }

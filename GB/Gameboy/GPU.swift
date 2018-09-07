@@ -266,6 +266,7 @@ struct GPU {
             scanLineCycles = 0
             if currentLine == 144 {
                 CPU.Interrupt.requestInterrupt(for: CPU.Interrupt.VBlank)
+                
                 isReady = true
             } else if currentLine > 153 {
                 //textureData = Data(repeating: 0, count: 160*144*4)
@@ -299,24 +300,27 @@ struct GPU {
 
         for spriteInd in 0..<40 {
             let sprite = OAM[spriteInd]
-            let yPos = sprite.y
+            let y = sprite.y.subtractingReportingOverflow(16)
+            let yPos = sprite.y &- 16
             let ySize: UInt8 = LCDC.spriteSize ? 16 : 8
-            let xPos = sprite.x
+            let xPos = sprite.x &- 8
             
+            // TODO: simply check if the yPos or yPos + ySize and xPos or xPos + xSize is in the bounds of the screen?
             guard yPos <= currentLine, currentLine < yPos &+ ySize, xPos &+ 8 >= 0 else { continue } // determine if the sprite is being rendered on the current scanline
             
             
             let tileLocation = sprite.tileNum
+            // unsafe subtraction might always lead to the correct result
             let lineInSprite = currentLine - yPos
 
             let charBank = sprite.VRAMBank & 0x01
 
-            let lineAddr = sprite.yFlip ? (UInt16(tileLocation + 1) * 16) - (UInt16(lineInSprite) * 2) : (UInt16(tileLocation) * 16) + (UInt16(lineInSprite) * 2)
+            let lineAddr = sprite.yFlip ? (UInt16(tileLocation + 1) * UInt16(ySize) * 2 - 2) - (UInt16(lineInSprite) * 2) : (UInt16(tileLocation) * UInt16(ySize) * 2) + (UInt16(lineInSprite) * 2)
+            
+            guard lineAddr < VRAMbanks[charBank].count - 1 else { continue }
             
             let lData = VRAMbanks[charBank][lineAddr+1]
             let hData = VRAMbanks[charBank][lineAddr]
-            
-            
             
             for xPixel: UInt8 in 0..<8 {
                 guard xPixel &+ xPos >= 0, xPixel &+ xPos < 160 else { continue }
@@ -398,7 +402,7 @@ struct GPU {
         
         for pixel: UInt8 in 0..<160 {
             //let xPos = UInt16(usingWindow && pixel >= (windowX) ? pixel &- windowX : pixel &+ scrollX)
-            let xPos = UInt16((usingWindow && pixel >= (windowX &- 7)) ? pixel &+ (windowX &- 7) : scrollX &+ pixel)
+            let xPos = UInt16((usingWindow && pixel >= (windowX &- 7)) ? pixel &- (windowX &- 7) : scrollX &+ pixel)
             
             let tileCol = UInt16(xPos / 8)
             let tileNum = UInt8(VRAMbanks[VRAMbankIndex][(backgroundMemory + tileRow + tileCol)])

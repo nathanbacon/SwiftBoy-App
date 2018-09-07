@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		7500F5EC211F8E9F000D3916 /* GameboyInterfaceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7500F5EB211F8E9F000D3916 /* GameboyInterfaceViewController.swift */; };
 		751E6AA32111180E00363A48 /* GBDisplayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751E6AA22111180E00363A48 /* GBDisplayViewController.swift */; };
+		7533A1F32141C06E0043C9BA /* UsefulExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */; };
 		7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7544618620FB0FBF002C3687 /* Cartridge.swift */; };
 		7544618920FB1883002C3687 /* pokemon_blue.gb in Resources */ = {isa = PBXBuildFile; fileRef = 7544618820FB1883002C3687 /* pokemon_blue.gb */; };
 		754BA1CF20B53E5E00858222 /* bios.gb in Resources */ = {isa = PBXBuildFile; fileRef = 754BA1CE20B53E5E00858222 /* bios.gb */; };
@@ -37,6 +38,7 @@
 /* Begin PBXFileReference section */
 		7500F5EB211F8E9F000D3916 /* GameboyInterfaceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameboyInterfaceViewController.swift; sourceTree = "<group>"; };
 		751E6AA22111180E00363A48 /* GBDisplayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBDisplayViewController.swift; sourceTree = "<group>"; };
+		7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsefulExtensions.swift; sourceTree = "<group>"; };
 		7544618620FB0FBF002C3687 /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
 		7544618820FB1883002C3687 /* pokemon_blue.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = pokemon_blue.gb; sourceTree = "<group>"; };
 		754BA1CE20B53E5E00858222 /* bios.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = bios.gb; sourceTree = "<group>"; };
@@ -79,14 +81,15 @@
 			isa = PBXGroup;
 			children = (
 				75A58D9820A4D94100CB2DD2 /* CPU.swift */,
+				75D0BD702101BAE60004BA8E /* GPU.swift */,
+				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
 				7586DB8D211D3EF400D702B8 /* InputController.swift */,
 				755F62AE210C78BD00530AD8 /* Timer.swift */,
 				75D44C6720EA062A00AFF9C2 /* Registers.swift */,
 				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				7544618620FB0FBF002C3687 /* Cartridge.swift */,
-				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
-				75D0BD702101BAE60004BA8E /* GPU.swift */,
 				75ED5317210F151D009BEFEB /* GBRenderer.swift */,
+				7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */,
 				75ED5319210F156A009BEFEB /* Shaders.metal */,
 				754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */,
 				75706AFA213B1226005BBE4A /* cpu_instrs.gb */,
@@ -164,6 +167,7 @@
 				TargetAttributes = {
 					75A58D8220A4D92D00CB2DD2 = {
 						CreatedOnToolsVersion = 9.2;
+						LastSwiftMigration = 0940;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -212,6 +216,7 @@
 				7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */,
 				754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */,
 				755F62AF210C78BD00530AD8 /* Timer.swift in Sources */,
+				7533A1F32141C06E0043C9BA /* UsefulExtensions.swift in Sources */,
 				7586DB92211D4E6F00D702B8 /* InputViewController.swift in Sources */,
 				7586DB8E211D3EF400D702B8 /* InputController.swift in Sources */,
 				7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */,
@@ -367,12 +372,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y7FVZ8LLL3;
 				INFOPLIST_FILE = GB/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nathangelman.GB;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -382,6 +389,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y7FVZ8LLL3;
 				INFOPLIST_FILE = GB/Info.plist;

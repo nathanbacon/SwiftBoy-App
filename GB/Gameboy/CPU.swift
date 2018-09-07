@@ -24,6 +24,8 @@ class CPU {
     
     static fileprivate var prevInstCycles: UInt = 0
     
+    static var speedDivider: UInt = 1 // set to 2 for double speed
+    
     static var interruptEnabled = false {
         didSet {
             Interrupt.IF = 0x00
@@ -52,7 +54,7 @@ class CPU {
             }*/
             CPU.fetchInstruction()()
             //totalInstructions += 1
-            return prevInstCycles
+            return prevInstCycles / speedDivider
             //return 32
         }
         
@@ -868,11 +870,14 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
         exec = generateBinOp8(xor, .A, arg1!)
     case .CP:
         let cp: (UInt8, UInt8) -> UInt8 = { a, b in
-            let sub = a.subtractingReportingOverflow(b)
-            let halfSub = (0x0F & a).subtractingReportingOverflow(0x0F & b)
-            CPU.registers.flags.zero = sub.partialValue == 0
-            CPU.registers.flags.halfCarry = halfSub.overflow
-            CPU.registers.flags.carry = sub.overflow
+            //let sub = a.subtractingReportingOverflow(b)
+            //let halfSub = (0x0F & a).subtractingReportingOverflow(0x0F & b)
+            //CPU.registers.flags.zero = sub.partialValue == 0
+            CPU.registers.flags.zero = a == b
+            //CPU.registers.flags.halfCarry = halfSub.overflow
+            CPU.registers.flags.halfCarry = (a &- b) & 0x0F > (a & 0x0F)
+            //CPU.registers.flags.carry = sub.overflow
+            CPU.registers.flags.carry = a < b
             CPU.registers.flags.subtract = true
             return a
         }
@@ -1205,94 +1210,6 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             CPU.registers.flags.carry = (num & 0x100) > 0
             CPU.registers.flags.zero = num == 0
             CPU.registers.A = UInt8(num & 0xFF)
-            
-            /*if CPU.registers.flags.subtract {
-                
-                if CPU.registers.flags.carry {
-                    
-                    if CPU.registers.flags.halfCarry {
-                        if (0x6...0xF).contains(h) && (0x6...0xF).contains(l) {
-                            num = 0x9A
-                        }
-                    } else {
-                        if (0x7...0xF).contains(h) && (0x0...0x9).contains(l) {
-                            num = 0xA0
-                        }
-                    }
-                    
-                } else {
-                    
-                    if CPU.registers.flags.halfCarry {
-                        if (0x0...0x8).contains(h) && (0x6...0xF).contains(l) {
-                            // CY = 0 H = 1
-                            num = 0xFA
-                        }
-                    } else {
-                        // CY = 0 H = 0
-                        if (0x0...0x9).contains(h) && (0x0...0x9).contains(l) {
-                            num = 0x00
-                        }
-                    }
-                    
-                }
-                
-            } else {
-                
-                if CPU.registers.flags.carry {
-                    // CY = 1
-                    if CPU.registers.flags.halfCarry {
-                        // CY = 1 H = 1
-                        if (0x0...0x3).contains(h) && (0x0...0x3).contains(l) {
-                            num = 0x66
-                        }
-                    } else {
-                        // CY = 1 H = 0
-                        if (0x0...0x2).contains(h) {
-                            if (0x0...0x9).contains(l) {
-                                num = 0x60
-                            } else {
-                                num = 0x66
-                            }
-                        }
-                    }
-                } else {
-                    // CY = 0
-                    if CPU.registers.flags.halfCarry {
-                        // CY = 0 H = 1
-                        if (0x0...0x9).contains(h) {
-                            if (0x0...0x3).contains(l) {
-                                num = 0x06
-                            }
-                        } else {
-                            if (0x0...0x3).contains(l) {
-                                num = 0x66
-                            }
-                        }
-                        
-                    } else {
-                        // CY = 0 H = 0
-                        if (0x0...0x9).contains(h) {
-                            if (0x0...0x9).contains(l) {
-                                num = 0x00
-                            } else {
-                                num = 0x06
-                            }
-                        } else {
-                            if (0x0...0x9).contains(l) {
-                                num = 0x60
-                            } else {
-                                num = 0x66
-                            }
-                        }
-                        
-                    }
-                }
-
-                CPU.registers.flags.carry = (0x60 & num) > 0
-                
-            }
-            
-            CPU.registers.A = CPU.registers.A &+ num*/
         
         }
     default:
@@ -1767,38 +1684,5 @@ func I(_ operation: InstType) -> ()->() {
     return I(operation, nil, nil)
 }
 
-extension UInt8 {
-    func rotatingLeft () -> (result: UInt8, carry: Bool) {
-        let c = (self & 0x80) > 0
-        let r = self << 1
-        return (r, c)
-    }
-    
-    func rotatingRight() -> (result: UInt8, carry: Bool) {
-        let c = (self & 0x01) > 0
-        let r = self >> 1
-        return (r, c)
-    }
-    
-    func rotatingRightCircular() -> (result: UInt8, carry: Bool) {
-        let res = self.rotatingRight()
-        return ((res.result | (res.carry ? 0x80 : 0x00)), res.carry)
-    }
-    
-    func rotatingLeftCircular() -> (result: UInt8, carry: Bool) {
-        let res = self.rotatingLeft()
-        return ((res.result | (res.carry ? 0x01 : 0x00)), res.carry)
-    }
-    
-    func rotatingRightThrough(carry: Bool) -> (result: UInt8, carry: Bool) {
-        let res = self.rotatingRight()
-        return ((res.result | (carry ? 0x80 : 0x00)), res.carry)
-    }
-    
-    func rotatingLeftThrough(carry: Bool) -> (result: UInt8, carry: Bool) {
-        let res = self.rotatingLeft()
-        return ((res.result | (carry ? 0x01 : 0x00)), res.carry)
-    }
-    
-}
+
 

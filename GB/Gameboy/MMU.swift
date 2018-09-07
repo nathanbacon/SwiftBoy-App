@@ -27,12 +27,9 @@ class MMU {
         }
     }
     
-    static var WRAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating:0, count: 0x1000), count: 8)
-    static var activeWRAMbank = withUnsafeMutablePointer(to: &WRAMbanks[0], {$0})
-    static var WRAMbankIndex = 1
-    
-    //static var VRAMbanks = Array<Data>(repeating: Data(repeating:0, count: 0x2000), count: 2)
-    //static var activeVRAMbank = withUnsafeMutablePointer(to: &VRAMbanks[0], {$0})
+    var WRAMbanks: Array<Data> = Array<Data>(repeating: Data(repeating:0, count: 0x1000), count: 8)
+    //var activeWRAMbank = withUnsafeMutablePointer(to: &WRAMbanks[0], {$0})
+    var WRAMbankIndex = 1
     
     var cartridge_type: CartridgeType = .ROM_only
     
@@ -44,7 +41,6 @@ class MMU {
     var bank0: Data = Data(repeating: 0, count: 0x4000)
     var bank1: Data = Data(repeating: 0, count: 0x4000)
     
-    //var externRAM: UnsafeMutablePointer<Data>?
     var iram: Data = Data(repeating: 0, count: 0x80)
     
     subscript(index: UInt16) -> UInt8 {
@@ -81,10 +77,10 @@ class MMU {
                 // This method doesn't seem to work, just 
                 return cartridge!.readRam(at: index & 0x1FFF)
             case 0xC:
-                return MMU.WRAMbanks[0][index & 0x0FFF]
+                return WRAMbanks[0][index & 0x0FFF]
             case 0xD:
                 //return MMU.activeWRAMbank.pointee[index & 0x0FFF]
-                return MMU.WRAMbanks[MMU.WRAMbankIndex][index & 0x0FFF]
+                return WRAMbanks[WRAMbankIndex][index & 0x0FFF]
             case 0xE:
                 fatalError("\(index)")
             case 0xF:
@@ -161,6 +157,7 @@ class MMU {
                     return GPU.windowX
                 case 0xFF4D:
                     // cpu speed switching p 34
+                    //CPU.speedDivider =
                     return 0
                 case 0xFF4F:
                     // vram bank switching getter
@@ -239,10 +236,10 @@ class MMU {
                 /*if index == 0xC103 {
                     print("C103 \(CPU.registers.PC)")
                 }*/
-                MMU.WRAMbanks[0][index & 0x0FFF] = newValue
+                WRAMbanks[0][index & 0x0FFF] = newValue
             case 0xD:
                 //wram[index & 0x1FFF] = newValue
-                MMU.WRAMbanks[MMU.WRAMbankIndex][index & 0x0FFF] = newValue
+                WRAMbanks[WRAMbankIndex][index & 0x0FFF] = newValue
                 break
             case 0xE:
                 fallthrough
@@ -257,9 +254,9 @@ class MMU {
                         let spriteNum = index / 4
                         switch index % 4 {
                         case 0:
-                            GPU.OAM[spriteNum].y = newValue - 16
+                            GPU.OAM[spriteNum].y = newValue
                         case 1:
-                            GPU.OAM[spriteNum].x = newValue - 8
+                            GPU.OAM[spriteNum].x = newValue
                         case 2:
                             GPU.OAM[spriteNum].tileNum = newValue
                         case 3:
@@ -273,6 +270,7 @@ class MMU {
                     case 0xFF01:
                         // serial transfer data
                         // page 28
+                        print("\(Character(Unicode.Scalar(newValue))) \(newValue)")
                         break
                     case 0xFF02:
                         // serial transfer control register
@@ -321,8 +319,8 @@ class MMU {
                             let x = self[addr + 1]
                             let tileNum = self[addr+2]
                             let attrib = self[addr+3]
-                            GPU.OAM[spriteNum].y = y &- 16
-                            GPU.OAM[spriteNum].x = x &- 8
+                            GPU.OAM[spriteNum].y = y
+                            GPU.OAM[spriteNum].x = x
                             GPU.OAM[spriteNum].tileNum = tileNum
                             GPU.OAM[spriteNum].attributes = attrib
                         }
@@ -365,7 +363,7 @@ class MMU {
                     case 0xFF70:
                         let bank = newValue == 0 ? 1 : newValue & 0x07
                         //MMU.activeWRAMbank = withUnsafeMutablePointer(to: &MMU.WRAMbanks[bank], {$0})
-                        MMU.WRAMbankIndex = Int(bank)
+                        WRAMbankIndex = Int(bank)
                     case 0xFF80..<0xFFFF:
                         /*if index == 0xFFAF {
                             print(CPU.registers.PC)
@@ -388,22 +386,6 @@ class MMU {
     
 }
 
-extension Array {
-    subscript(index: UInt16) -> Element {
-        get { return self[Int(index)] }
-        set { self[Int(index)] = newValue }
-    }
-    subscript(index: UInt8) -> Element {
-        get { return self[Int(index)] }
-        set { self[Int(index)] = newValue }
-    }
-}
 
-extension Data {
-    subscript(index: UInt16) -> Element {
-        get { return self[Int(index)] }
-        set { self[Int(index)] = newValue }
-    }
-}
 
 
