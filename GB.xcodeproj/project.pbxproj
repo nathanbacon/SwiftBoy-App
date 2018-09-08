@@ -31,6 +31,13 @@
 		75AE35EF211D51340005391B /* GBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75AE35EE211D51340005391B /* GBButton.swift */; };
 		75D0BD712101BAE60004BA8E /* GPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D0BD702101BAE60004BA8E /* GPU.swift */; };
 		75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D44C6720EA062A00AFF9C2 /* Registers.swift */; };
+		75D983F521424529009C0F74 /* Gb_Apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983E421424528009C0F74 /* Gb_Apu.cpp */; };
+		75D983F621424529009C0F74 /* Gb_Apu_State.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983E621424528009C0F74 /* Gb_Apu_State.cpp */; };
+		75D983F721424529009C0F74 /* Gb_Oscs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983E821424528009C0F74 /* Gb_Oscs.cpp */; };
+		75D983F821424529009C0F74 /* Effects_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983E921424528009C0F74 /* Effects_Buffer.cpp */; };
+		75D983FA21424529009C0F74 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983F221424528009C0F74 /* Multi_Buffer.cpp */; };
+		75D983FB21424529009C0F74 /* Blip_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983F321424528009C0F74 /* Blip_Buffer.cpp */; };
+		75D983FD2142669E009C0F74 /* Objc_Gb_Apu.mm in Sources */ = {isa = PBXBuildFile; fileRef = 75D983FC2142669E009C0F74 /* Objc_Gb_Apu.mm */; };
 		75ED5318210F151D009BEFEB /* GBRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5317210F151D009BEFEB /* GBRenderer.swift */; };
 		75ED531A210F156A009BEFEB /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5319210F156A009BEFEB /* Shaders.metal */; };
 /* End PBXBuildFile section */
@@ -62,6 +69,23 @@
 		75AE35EE211D51340005391B /* GBButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBButton.swift; sourceTree = "<group>"; };
 		75D0BD702101BAE60004BA8E /* GPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPU.swift; sourceTree = "<group>"; };
 		75D44C6720EA062A00AFF9C2 /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
+		75D983E321424527009C0F74 /* GB-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GB-Bridging-Header.h"; sourceTree = "<group>"; };
+		75D983E421424528009C0F74 /* Gb_Apu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gb_Apu.cpp; sourceTree = "<group>"; };
+		75D983E521424528009C0F74 /* Multi_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Multi_Buffer.h; sourceTree = "<group>"; };
+		75D983E621424528009C0F74 /* Gb_Apu_State.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gb_Apu_State.cpp; sourceTree = "<group>"; };
+		75D983E721424528009C0F74 /* Blip_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Blip_Buffer.h; sourceTree = "<group>"; };
+		75D983E821424528009C0F74 /* Gb_Oscs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gb_Oscs.cpp; sourceTree = "<group>"; };
+		75D983E921424528009C0F74 /* Effects_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Effects_Buffer.cpp; sourceTree = "<group>"; };
+		75D983EB21424528009C0F74 /* blargg_common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = blargg_common.h; sourceTree = "<group>"; };
+		75D983EC21424528009C0F74 /* Blip_Synth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Blip_Synth.h; sourceTree = "<group>"; };
+		75D983EE21424528009C0F74 /* Gb_Oscs.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gb_Oscs.h; sourceTree = "<group>"; };
+		75D983EF21424528009C0F74 /* blargg_config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = blargg_config.h; sourceTree = "<group>"; };
+		75D983F021424528009C0F74 /* Effects_Buffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Effects_Buffer.h; sourceTree = "<group>"; };
+		75D983F121424528009C0F74 /* blargg_source.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = blargg_source.h; sourceTree = "<group>"; };
+		75D983F221424528009C0F74 /* Multi_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Multi_Buffer.cpp; sourceTree = "<group>"; };
+		75D983F321424528009C0F74 /* Blip_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blip_Buffer.cpp; sourceTree = "<group>"; };
+		75D983F421424528009C0F74 /* Gb_Apu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gb_Apu.h; sourceTree = "<group>"; };
+		75D983FC2142669E009C0F74 /* Objc_Gb_Apu.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Objc_Gb_Apu.mm; sourceTree = "<group>"; };
 		75ED5317210F151D009BEFEB /* GBRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBRenderer.swift; sourceTree = "<group>"; };
 		75ED5319210F156A009BEFEB /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -80,6 +104,7 @@
 		754BA1D220B5452900858222 /* Gameboy */ = {
 			isa = PBXGroup;
 			children = (
+				75D983E22142450A009C0F74 /* Audio */,
 				75A58D9820A4D94100CB2DD2 /* CPU.swift */,
 				75D0BD702101BAE60004BA8E /* GPU.swift */,
 				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
@@ -133,6 +158,30 @@
 				754BA1D020B543CB00858222 /* GameBoyViewController.swift */,
 			);
 			path = GB;
+			sourceTree = "<group>";
+		};
+		75D983E22142450A009C0F74 /* Audio */ = {
+			isa = PBXGroup;
+			children = (
+				75D983EB21424528009C0F74 /* blargg_common.h */,
+				75D983EF21424528009C0F74 /* blargg_config.h */,
+				75D983F121424528009C0F74 /* blargg_source.h */,
+				75D983F321424528009C0F74 /* Blip_Buffer.cpp */,
+				75D983E721424528009C0F74 /* Blip_Buffer.h */,
+				75D983EC21424528009C0F74 /* Blip_Synth.h */,
+				75D983E921424528009C0F74 /* Effects_Buffer.cpp */,
+				75D983F021424528009C0F74 /* Effects_Buffer.h */,
+				75D983E621424528009C0F74 /* Gb_Apu_State.cpp */,
+				75D983E421424528009C0F74 /* Gb_Apu.cpp */,
+				75D983F421424528009C0F74 /* Gb_Apu.h */,
+				75D983E821424528009C0F74 /* Gb_Oscs.cpp */,
+				75D983EE21424528009C0F74 /* Gb_Oscs.h */,
+				75D983F221424528009C0F74 /* Multi_Buffer.cpp */,
+				75D983E521424528009C0F74 /* Multi_Buffer.h */,
+				75D983E321424527009C0F74 /* GB-Bridging-Header.h */,
+				75D983FC2142669E009C0F74 /* Objc_Gb_Apu.mm */,
+			);
+			path = Audio;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -211,6 +260,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				75D983FD2142669E009C0F74 /* Objc_Gb_Apu.mm in Sources */,
+				75D983F521424529009C0F74 /* Gb_Apu.cpp in Sources */,
 				75AE35EF211D51340005391B /* GBButton.swift in Sources */,
 				754DFF7320B3DECB00B3CDA3 /* MMU.swift in Sources */,
 				7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */,
@@ -222,13 +273,18 @@
 				7590371420FC324D0065F70A /* GameboyDebugViewController.swift in Sources */,
 				75ED5318210F151D009BEFEB /* GBRenderer.swift in Sources */,
 				75A58D8720A4D92D00CB2DD2 /* AppDelegate.swift in Sources */,
+				75D983F821424529009C0F74 /* Effects_Buffer.cpp in Sources */,
 				754EA5DD21087F00005848D3 /* GameboyDebugger.swift in Sources */,
 				75ED531A210F156A009BEFEB /* Shaders.metal in Sources */,
 				75D0BD712101BAE60004BA8E /* GPU.swift in Sources */,
 				751E6AA32111180E00363A48 /* GBDisplayViewController.swift in Sources */,
 				754DFF7120B3D9CE00B3CDA3 /* Instruction.swift in Sources */,
 				75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */,
+				75D983F721424529009C0F74 /* Gb_Oscs.cpp in Sources */,
+				75D983FB21424529009C0F74 /* Blip_Buffer.cpp in Sources */,
+				75D983FA21424529009C0F74 /* Multi_Buffer.cpp in Sources */,
 				754BA1D820B5EEBF00858222 /* GameBoy.swift in Sources */,
+				75D983F621424529009C0F74 /* Gb_Apu_State.cpp in Sources */,
 				7500F5EC211F8E9F000D3916 /* GameboyInterfaceViewController.swift in Sources */,
 				75A58D9920A4D94100CB2DD2 /* CPU.swift in Sources */,
 			);
@@ -379,6 +435,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nathangelman.GB;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "GB/Gameboy/Audio/GB-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -396,6 +453,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = nathangelman.GB;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "GB/Gameboy/Audio/GB-Bridging-Header.h";
 				SWIFT_VERSION = 4.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

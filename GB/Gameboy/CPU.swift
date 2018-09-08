@@ -879,6 +879,7 @@ func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
             //CPU.registers.flags.carry = sub.overflow
             CPU.registers.flags.carry = a < b
             CPU.registers.flags.subtract = true
+            
             return a
         }
         exec = generateBinOp8(cp, .A, arg1!)
