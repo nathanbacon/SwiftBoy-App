@@ -43,22 +43,7 @@ class CPU {
         
     }
     
-    static func execNextInstruction() -> UInt {
-        
-        if CPU.isHalted {
-            return 4
-        } else {
-            CPU.prevInstCycles = 0
-            /*if (0x7880...0x789D).contains(CPU.registers.PC) {
-                print("\(CPU.registers.A)")
-            }*/
-            CPU.fetchInstruction()()
-            //totalInstructions += 1
-            return prevInstCycles / speedDivider
-            //return 32
-        }
-        
-    }
+    
     
     enum Interrupt: UInt16 {
         case VBlank = 0x40
@@ -155,9 +140,9 @@ class CPU {
     }
     
     static func fetchInstruction() -> ()->() {
-        if (0xFF00..<0xFF80).contains(Int(CPU.registers.PC)) || (0xE000..<0xFF00).contains(Int(CPU.registers.PC)) {
+        /*if (0xFF00..<0xFF80).contains(Int(CPU.registers.PC)) || (0xE000..<0xFF00).contains(Int(CPU.registers.PC)) {
             fatalError("\(CPU.registers.PC)")
-        }
+        }*/
         let opcode = CPU.mmu[CPU.registers.PC]
         CPU.registers.PC += 1
         return CPU.basicTable[opcode]
@@ -175,6 +160,20 @@ class CPU {
         let l = CPU.mmu[CPU.registers.PC]
         CPU.registers.PC += 2
         return (UInt16(h) << 8) | UInt16(l)
+    }
+    
+    static func execNextInstruction() -> UInt {
+        
+        if CPU.isHalted {
+            return 4
+        } else {
+            CPU.prevInstCycles = 0
+            CPU.fetchInstruction()()
+            
+            return prevInstCycles / speedDivider
+            
+        }
+        
     }
 
     static let basicTable: Array<()->()> = [
