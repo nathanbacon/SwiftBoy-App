@@ -20,7 +20,7 @@
 @interface APU ()
 @property (nonatomic, readwrite, assign) Gb_Apu *gb_apu;
 @property (nonatomic, readwrite, assign) Stereo_Buffer *stereo_buffer;
-@property (nonatomic, readwrite) NSArray* out_buf;
+@property (nonatomic, readwrite) NSMutableData* out_buf;
 @end
 
 @implementation APU
@@ -38,7 +38,7 @@
         _stereo_buffer->clock_rate( 4194304 );
         _gb_apu->set_output(_stereo_buffer->center(), _stereo_buffer->left(), _stereo_buffer->right());
         
-        _out_buf = [NSMutableArray arrayWithCapacity:4096];
+        _out_buf = [NSMutableData dataWithLength:4096];
     }
     return self;
 }
@@ -56,17 +56,21 @@
     return _gb_apu->read_register(time, addr);
 }
 
-- (void)end_frame:(uint32_t)time {
+- (long)end_frame:(uint32_t)time {
     const int out_size = 4096;
-    blip_sample_t out_buf [out_size];
     
     _gb_apu->end_frame(time);
     _stereo_buffer->end_frame(time);
     
     if ( _stereo_buffer->samples_avail() >= out_size ) {
-        auto count = _stereo_buffer->read_samples(out_buf, out_size);
+        short* a = (short*)[_out_buf mutableBytes];
         
+        auto count = _stereo_buffer->read_samples(a, out_size);
+        
+        return count;
     }
+    
+    return 0;
 }
 
 @end
