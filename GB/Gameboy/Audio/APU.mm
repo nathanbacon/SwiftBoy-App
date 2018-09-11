@@ -9,63 +9,55 @@
 #include "Gb_Apu.h"
 #include "Multi_Buffer.h"
 
+#import "APU.h"
 #import <Foundation/Foundation.h>
 
-
-
-@interface APU: NSObject
-
-@end
-
-@interface APU ()
-@property (nonatomic, readwrite, assign) Gb_Apu *gb_apu;
-@property (nonatomic, readwrite, assign) Stereo_Buffer *stereo_buffer;
-@property (nonatomic, readwrite) NSMutableData* out_buf;
-@end
-
 @implementation APU
-@synthesize gb_apu = _gb_apu;
-@synthesize stereo_buffer = _stereo_buffer;
-@synthesize out_buf = _out_buf;
+Gb_Apu *gb_apu;
+Stereo_Buffer *stereo_buffer;
+NSMutableData* out_buf;
+//@synthesize gb_apu = _gb_apu;
+//@synthesize stereo_buffer = _stereo_buffer;
+//@synthesize out_buf = _out_buf;
 
 - (id)init {
     self = [super init];
     if (self) {
-        _gb_apu = new Gb_Apu();
-        _stereo_buffer = new Stereo_Buffer();
+        gb_apu = new Gb_Apu();
+        stereo_buffer = new Stereo_Buffer();
         
-        _stereo_buffer->set_sample_rate(44100);
-        _stereo_buffer->clock_rate( 4194304 );
-        _gb_apu->set_output(_stereo_buffer->center(), _stereo_buffer->left(), _stereo_buffer->right());
+        stereo_buffer->set_sample_rate(44100);
+        stereo_buffer->clock_rate( 4194304 );
+        gb_apu->set_output(stereo_buffer->center(), stereo_buffer->left(), stereo_buffer->right());
         
-        _out_buf = [NSMutableData dataWithLength:4096];
+        out_buf = [NSMutableData dataWithLength:4096];
     }
     return self;
 }
 
 - (void)dealloc {
-    delete _gb_apu;
-    delete _stereo_buffer;
+    delete gb_apu;
+    delete stereo_buffer;
 }
 
-- (void) write_register:(uint32_t)time :(uint32_t)addr :(int32_t)data {
-    _gb_apu->write_register(time, addr, data);
+- (void) write_register:(uint32_t)time :(uint32_t)addr :(uint32_t)data {
+    gb_apu->write_register(time, addr, data);
 }
 
 - (int) read_register:(uint32_t)time :(uint32_t)addr {
-    return _gb_apu->read_register(time, addr);
+    return gb_apu->read_register(time, addr);
 }
 
 - (long)end_frame:(uint32_t)time {
     const int out_size = 4096;
     
-    _gb_apu->end_frame(time);
-    _stereo_buffer->end_frame(time);
+    gb_apu->end_frame(time);
+    stereo_buffer->end_frame(time);
     
-    if ( _stereo_buffer->samples_avail() >= out_size ) {
-        short* a = (short*)[_out_buf mutableBytes];
+    if ( stereo_buffer->samples_avail() >= out_size ) {
+        short* a = (short*)[out_buf mutableBytes];
         
-        auto count = _stereo_buffer->read_samples(a, out_size);
+        auto count = stereo_buffer->read_samples(a, out_size);
         
         return count;
     }

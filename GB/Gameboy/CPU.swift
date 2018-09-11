@@ -8,8 +8,6 @@
 
 import Foundation
 
-
-
 class CPU {
     
     static var cpu: CPU = CPU()
@@ -20,7 +18,7 @@ class CPU {
     
     //static var currentInstruction: Instruction = CPU.basicTable[0]
     
-    static var cycles: UInt = 0
+    static var cyclesSinceFrame: UInt32 = 0
     
     static fileprivate var prevInstCycles: UInt = 0
     
@@ -44,7 +42,7 @@ class CPU {
     }
     
     static func execNextInstruction() -> UInt {
-        
+
         if CPU.isHalted {
             return 4
         } else {

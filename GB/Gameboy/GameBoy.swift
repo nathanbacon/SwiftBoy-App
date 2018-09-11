@@ -13,6 +13,8 @@ class GameBoy {
     
     static var mmu: MMU = MMU.mmu
     
+    static var apu: APU = APU()
+    
     var inputController: InputController!
     
     var cart: Cartridge
@@ -52,8 +54,9 @@ class GameBoy {
             //GPU.textureData = Data(repeating: 0x00, count: 160*144*4)
             
             while !GPU.isReady {
-                let _ = execInstruc()
+                CPU.cyclesSinceFrame += UInt32(execInstruc())
             }
+            GameBoy.apu.end_frame(CPU.cyclesSinceFrame)
             GPU.isReady = false
             return GPU.textureData
             /*var elapsedCycles: UInt = 0

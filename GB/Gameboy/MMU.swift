@@ -290,6 +290,8 @@ class MMU {
                     case 0xFF0F:
                         // interrupt request
                         CPU.Interrupt.IF = newValue
+                    case 0xFF10...0xFF3F:
+                        GameBoy.apu.write_register(UInt32(CPU.cyclesSinceFrame), UInt32(index), UInt32(newValue))
                     case 0xFF40:
                         // LCDC register
                         // page 54

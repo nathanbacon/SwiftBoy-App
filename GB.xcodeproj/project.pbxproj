@@ -10,7 +10,6 @@
 		7500F5EC211F8E9F000D3916 /* GameboyInterfaceViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7500F5EB211F8E9F000D3916 /* GameboyInterfaceViewController.swift */; };
 		751E6AA32111180E00363A48 /* GBDisplayViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 751E6AA22111180E00363A48 /* GBDisplayViewController.swift */; };
 		7533A1F32141C06E0043C9BA /* UsefulExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */; };
-		75410B412145C210008251D5 /* Objc_Stereo_Buffer.mm in Sources */ = {isa = PBXBuildFile; fileRef = 75410B402145C210008251D5 /* Objc_Stereo_Buffer.mm */; };
 		75410B432145C8E7008251D5 /* APU.mm in Sources */ = {isa = PBXBuildFile; fileRef = 75410B422145C8E7008251D5 /* APU.mm */; };
 		7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7544618620FB0FBF002C3687 /* Cartridge.swift */; };
 		7544618920FB1883002C3687 /* pokemon_blue.gb in Resources */ = {isa = PBXBuildFile; fileRef = 7544618820FB1883002C3687 /* pokemon_blue.gb */; };
@@ -31,6 +30,7 @@
 		75A58D9120A4D92D00CB2DD2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8F20A4D92D00CB2DD2 /* LaunchScreen.storyboard */; };
 		75A58D9920A4D94100CB2DD2 /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A58D9820A4D94100CB2DD2 /* CPU.swift */; };
 		75AE35EF211D51340005391B /* GBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75AE35EE211D51340005391B /* GBButton.swift */; };
+		75CDE3C621478ED80005C6EB /* AudioPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75CDE3C521478ED80005C6EB /* AudioPlayer.swift */; };
 		75D0BD712101BAE60004BA8E /* GPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D0BD702101BAE60004BA8E /* GPU.swift */; };
 		75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D44C6720EA062A00AFF9C2 /* Registers.swift */; };
 		75D983F521424529009C0F74 /* Gb_Apu.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983E421424528009C0F74 /* Gb_Apu.cpp */; };
@@ -39,7 +39,6 @@
 		75D983F821424529009C0F74 /* Effects_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983E921424528009C0F74 /* Effects_Buffer.cpp */; };
 		75D983FA21424529009C0F74 /* Multi_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983F221424528009C0F74 /* Multi_Buffer.cpp */; };
 		75D983FB21424529009C0F74 /* Blip_Buffer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 75D983F321424528009C0F74 /* Blip_Buffer.cpp */; };
-		75D983FD2142669E009C0F74 /* Objc_Gb_Apu.mm in Sources */ = {isa = PBXBuildFile; fileRef = 75D983FC2142669E009C0F74 /* Objc_Gb_Apu.mm */; };
 		75ED5318210F151D009BEFEB /* GBRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5317210F151D009BEFEB /* GBRenderer.swift */; };
 		75ED531A210F156A009BEFEB /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5319210F156A009BEFEB /* Shaders.metal */; };
 /* End PBXBuildFile section */
@@ -48,7 +47,6 @@
 		7500F5EB211F8E9F000D3916 /* GameboyInterfaceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameboyInterfaceViewController.swift; sourceTree = "<group>"; };
 		751E6AA22111180E00363A48 /* GBDisplayViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBDisplayViewController.swift; sourceTree = "<group>"; };
 		7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UsefulExtensions.swift; sourceTree = "<group>"; };
-		75410B402145C210008251D5 /* Objc_Stereo_Buffer.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Objc_Stereo_Buffer.mm; sourceTree = "<group>"; };
 		75410B422145C8E7008251D5 /* APU.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = APU.mm; sourceTree = "<group>"; };
 		7544618620FB0FBF002C3687 /* Cartridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Cartridge.swift; sourceTree = "<group>"; };
 		7544618820FB1883002C3687 /* pokemon_blue.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = pokemon_blue.gb; sourceTree = "<group>"; };
@@ -71,7 +69,9 @@
 		75A58D9220A4D92D00CB2DD2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		75A58D9820A4D94100CB2DD2 /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
 		75AE35EE211D51340005391B /* GBButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBButton.swift; sourceTree = "<group>"; };
+		75CDE3C521478ED80005C6EB /* AudioPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPlayer.swift; sourceTree = "<group>"; };
 		75D0BD702101BAE60004BA8E /* GPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPU.swift; sourceTree = "<group>"; };
+		75D3AE8E2147203C00C5DE2C /* APU.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = APU.h; sourceTree = "<group>"; };
 		75D44C6720EA062A00AFF9C2 /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
 		75D983E321424527009C0F74 /* GB-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GB-Bridging-Header.h"; sourceTree = "<group>"; };
 		75D983E421424528009C0F74 /* Gb_Apu.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Gb_Apu.cpp; sourceTree = "<group>"; };
@@ -89,7 +89,6 @@
 		75D983F221424528009C0F74 /* Multi_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Multi_Buffer.cpp; sourceTree = "<group>"; };
 		75D983F321424528009C0F74 /* Blip_Buffer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Blip_Buffer.cpp; sourceTree = "<group>"; };
 		75D983F421424528009C0F74 /* Gb_Apu.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Gb_Apu.h; sourceTree = "<group>"; };
-		75D983FC2142669E009C0F74 /* Objc_Gb_Apu.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = Objc_Gb_Apu.mm; sourceTree = "<group>"; };
 		75ED5317210F151D009BEFEB /* GBRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBRenderer.swift; sourceTree = "<group>"; };
 		75ED5319210F156A009BEFEB /* Shaders.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = Shaders.metal; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -112,10 +111,10 @@
 				75A58D9820A4D94100CB2DD2 /* CPU.swift */,
 				75D0BD702101BAE60004BA8E /* GPU.swift */,
 				754DFF7220B3DECB00B3CDA3 /* MMU.swift */,
+				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				7586DB8D211D3EF400D702B8 /* InputController.swift */,
 				755F62AE210C78BD00530AD8 /* Timer.swift */,
 				75D44C6720EA062A00AFF9C2 /* Registers.swift */,
-				754BA1D720B5EEBF00858222 /* GameBoy.swift */,
 				7544618620FB0FBF002C3687 /* Cartridge.swift */,
 				75ED5317210F151D009BEFEB /* GBRenderer.swift */,
 				7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */,
@@ -183,9 +182,9 @@
 				75D983F221424528009C0F74 /* Multi_Buffer.cpp */,
 				75D983E521424528009C0F74 /* Multi_Buffer.h */,
 				75D983E321424527009C0F74 /* GB-Bridging-Header.h */,
-				75D983FC2142669E009C0F74 /* Objc_Gb_Apu.mm */,
-				75410B402145C210008251D5 /* Objc_Stereo_Buffer.mm */,
 				75410B422145C8E7008251D5 /* APU.mm */,
+				75D3AE8E2147203C00C5DE2C /* APU.h */,
+				75CDE3C521478ED80005C6EB /* AudioPlayer.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -266,7 +265,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				75D983FD2142669E009C0F74 /* Objc_Gb_Apu.mm in Sources */,
 				75D983F521424529009C0F74 /* Gb_Apu.cpp in Sources */,
 				75AE35EF211D51340005391B /* GBButton.swift in Sources */,
 				754DFF7320B3DECB00B3CDA3 /* MMU.swift in Sources */,
@@ -274,7 +272,6 @@
 				7544618720FB0FBF002C3687 /* Cartridge.swift in Sources */,
 				754BA1D120B543CB00858222 /* GameBoyViewController.swift in Sources */,
 				755F62AF210C78BD00530AD8 /* Timer.swift in Sources */,
-				75410B412145C210008251D5 /* Objc_Stereo_Buffer.mm in Sources */,
 				7533A1F32141C06E0043C9BA /* UsefulExtensions.swift in Sources */,
 				7586DB92211D4E6F00D702B8 /* InputViewController.swift in Sources */,
 				7586DB8E211D3EF400D702B8 /* InputController.swift in Sources */,
@@ -295,6 +292,7 @@
 				75D983F621424529009C0F74 /* Gb_Apu_State.cpp in Sources */,
 				7500F5EC211F8E9F000D3916 /* GameboyInterfaceViewController.swift in Sources */,
 				75A58D9920A4D94100CB2DD2 /* CPU.swift in Sources */,
+				75CDE3C621478ED80005C6EB /* AudioPlayer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -376,6 +374,7 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_COMPILATION_MODE = singlefile;
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "GB-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
@@ -427,6 +426,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 11.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
+				SWIFT_OBJC_INTERFACE_HEADER_NAME = "GB-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
 				VALIDATE_PRODUCT = YES;
 			};
