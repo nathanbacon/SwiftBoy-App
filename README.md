@@ -1,6 +1,6 @@
 # SwiftBoy
 
-This is a Gameboy emulator built using Swift. I built it out of an interest in how computers work and how emulators are built.
+This is a Gameboy emulator built using Swift. I built it out of an interest in how computers work and how emulators are built. It currently targets iOS but I plan to also target MacOS. It uses the Metal API for graphics.
 
 <kbd>
 <p></br></p>
