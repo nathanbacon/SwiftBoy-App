@@ -732,11 +732,7 @@ class CPU {
 
 func I(operation: InstType, arg1: Argument?, arg2: Argument?) -> ()->() {
     let exec: (()->())?
-    // set execution
-    // return {
-    //      debug code
-    //      execution()
-    // }
+
     switch operation {
     case .NOOP:
         exec = { CPU.prevInstCycles += 4 }
