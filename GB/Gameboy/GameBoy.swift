@@ -32,11 +32,25 @@ class GameBoy {
         }
     }
     
+    static var cpuTime: UInt64 = 0
+    static var gpuTime: UInt64 = 0
+    static var miscTime: UInt64 = 0
+    
     func execInstruc() -> UInt {
+        //let startCPU = DispatchTime.now()
         let cycles = CPU.execNextInstruction()
+        //let endCPU = DispatchTime.now()
+        //GameBoy.cpuTime += endCPU.uptimeNanoseconds - startCPU.uptimeNanoseconds
+        //let startGPU = DispatchTime.now()
         GPU.updateGraphics(cycles: cycles)
+        //let endGPU = DispatchTime.now()
+        
+        //GameBoy.gpuTime += endGPU.uptimeNanoseconds - startGPU.uptimeNanoseconds
+        //let startMisc = DispatchTime.now()
         Timer.updateTimer(elapsed: cycles)
         CPU.Interrupt.processInterrupts()
+        //let endMisc = DispatchTime.now()
+        //GameBoy.miscTime += endMisc.uptimeNanoseconds - startMisc.uptimeNanoseconds
         return cycles
     }
     

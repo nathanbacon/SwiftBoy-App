@@ -16,7 +16,6 @@ struct Cartridge {
     var activeRAMBankNo: Int = 1
     
     init(filename: String) {
-        
 
         guard let rom = try? Data(contentsOf: URL(fileURLWithPath: Bundle.main.path(forResource: filename, ofType: "gb")!)) else { fatalError() }
         

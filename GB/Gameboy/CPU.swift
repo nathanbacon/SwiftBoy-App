@@ -43,8 +43,6 @@ class CPU {
         
     }
     
-    
-    
     enum Interrupt: UInt16 {
         case VBlank = 0x40
         case LCD = 0x48

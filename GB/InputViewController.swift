@@ -34,6 +34,8 @@ class InputViewController: UIViewController {
             InputViewController.inputController.b = true
         case "Select":
             InputViewController.inputController.select = true
+            //print("CPU UPTIME: \(GameBoy.cpuTime), GPU UPTIME: \(GameBoy.gpuTime), MISC: \(GameBoy.miscTime)")
+            //print("CPU%: \(Double(GameBoy.cpuTime)/Double(GameBoy.gpuTime + GameBoy.cpuTime + GameBoy.miscTime))")
         case "Start":
             InputViewController.inputController.start = true
         default:

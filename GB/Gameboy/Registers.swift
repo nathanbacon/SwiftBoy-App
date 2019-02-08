@@ -86,7 +86,7 @@ struct Registers {
         }
         set {
             B = UInt8(newValue >> 8)
-            C = UInt8(newValue & 0x00FF)
+            C = UInt8(truncatingIfNeeded: newValue)
         }
     }
     

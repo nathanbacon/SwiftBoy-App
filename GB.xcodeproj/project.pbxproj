@@ -27,11 +27,23 @@
 		75A58D9120A4D92D00CB2DD2 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 75A58D8F20A4D92D00CB2DD2 /* LaunchScreen.storyboard */; };
 		75A58D9920A4D94100CB2DD2 /* CPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75A58D9820A4D94100CB2DD2 /* CPU.swift */; };
 		75AE35EF211D51340005391B /* GBButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75AE35EE211D51340005391B /* GBButton.swift */; };
+		75CD8BBF220D010500576659 /* pokemon_blue.gb in Resources */ = {isa = PBXBuildFile; fileRef = 75CD8BBE220CFFEA00576659 /* pokemon_blue.gb */; };
+		75CD8BC7220D072800576659 /* GBTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75CD8BC6220D072800576659 /* GBTests.swift */; };
 		75D0BD712101BAE60004BA8E /* GPU.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D0BD702101BAE60004BA8E /* GPU.swift */; };
 		75D44C6820EA062A00AFF9C2 /* Registers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75D44C6720EA062A00AFF9C2 /* Registers.swift */; };
 		75ED5318210F151D009BEFEB /* GBRenderer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5317210F151D009BEFEB /* GBRenderer.swift */; };
 		75ED531A210F156A009BEFEB /* Shaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 75ED5319210F156A009BEFEB /* Shaders.metal */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		75CD8BC9220D072800576659 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 75A58D7B20A4D92D00CB2DD2 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 75A58D8220A4D92D00CB2DD2;
+			remoteInfo = GB;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		7500F5EB211F8E9F000D3916 /* GameboyInterfaceViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameboyInterfaceViewController.swift; sourceTree = "<group>"; };
@@ -56,6 +68,10 @@
 		75A58D9220A4D92D00CB2DD2 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		75A58D9820A4D94100CB2DD2 /* CPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CPU.swift; sourceTree = "<group>"; };
 		75AE35EE211D51340005391B /* GBButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBButton.swift; sourceTree = "<group>"; };
+		75CD8BBE220CFFEA00576659 /* pokemon_blue.gb */ = {isa = PBXFileReference; lastKnownFileType = file; path = pokemon_blue.gb; sourceTree = "<group>"; };
+		75CD8BC4220D072800576659 /* GBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = GBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		75CD8BC6220D072800576659 /* GBTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBTests.swift; sourceTree = "<group>"; };
+		75CD8BC8220D072800576659 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		75D0BD702101BAE60004BA8E /* GPU.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GPU.swift; sourceTree = "<group>"; };
 		75D44C6720EA062A00AFF9C2 /* Registers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Registers.swift; sourceTree = "<group>"; };
 		75ED5317210F151D009BEFEB /* GBRenderer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GBRenderer.swift; sourceTree = "<group>"; };
@@ -64,6 +80,13 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		75A58D8020A4D92D00CB2DD2 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75CD8BC1220D072800576659 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -88,6 +111,7 @@
 				7533A1F22141C06E0043C9BA /* UsefulExtensions.swift */,
 				75ED5319210F156A009BEFEB /* Shaders.metal */,
 				754DFF7020B3D9CE00B3CDA3 /* Instruction.swift */,
+				75CD8BBE220CFFEA00576659 /* pokemon_blue.gb */,
 				75706AFA213B1226005BBE4A /* cpu_instrs.gb */,
 			);
 			path = Gameboy;
@@ -97,6 +121,7 @@
 			isa = PBXGroup;
 			children = (
 				75A58D8520A4D92D00CB2DD2 /* GB */,
+				75CD8BC5220D072800576659 /* GBTests */,
 				75A58D8420A4D92D00CB2DD2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -105,6 +130,7 @@
 			isa = PBXGroup;
 			children = (
 				75A58D8320A4D92D00CB2DD2 /* GB.app */,
+				75CD8BC4220D072800576659 /* GBTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -129,6 +155,15 @@
 			path = GB;
 			sourceTree = "<group>";
 		};
+		75CD8BC5220D072800576659 /* GBTests */ = {
+			isa = PBXGroup;
+			children = (
+				75CD8BC6220D072800576659 /* GBTests.swift */,
+				75CD8BC8220D072800576659 /* Info.plist */,
+			);
+			path = GBTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -149,13 +184,31 @@
 			productReference = 75A58D8320A4D92D00CB2DD2 /* GB.app */;
 			productType = "com.apple.product-type.application";
 		};
+		75CD8BC3220D072800576659 /* GBTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 75CD8BCB220D072800576659 /* Build configuration list for PBXNativeTarget "GBTests" */;
+			buildPhases = (
+				75CD8BC0220D072800576659 /* Sources */,
+				75CD8BC1220D072800576659 /* Frameworks */,
+				75CD8BC2220D072800576659 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				75CD8BCA220D072800576659 /* PBXTargetDependency */,
+			);
+			name = GBTests;
+			productName = GBTests;
+			productReference = 75CD8BC4220D072800576659 /* GBTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		75A58D7B20A4D92D00CB2DD2 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastSwiftUpdateCheck = 0920;
+				LastSwiftUpdateCheck = 1010;
 				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "Nathan Gelman";
 				TargetAttributes = {
@@ -163,6 +216,11 @@
 						CreatedOnToolsVersion = 9.2;
 						LastSwiftMigration = 0940;
 						ProvisioningStyle = Automatic;
+					};
+					75CD8BC3220D072800576659 = {
+						CreatedOnToolsVersion = 10.1;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 75A58D8220A4D92D00CB2DD2;
 					};
 				};
 			};
@@ -180,6 +238,7 @@
 			projectRoot = "";
 			targets = (
 				75A58D8220A4D92D00CB2DD2 /* GB */,
+				75CD8BC3220D072800576659 /* GBTests */,
 			);
 		};
 /* End PBXProject section */
@@ -191,8 +250,16 @@
 			files = (
 				75A58D9120A4D92D00CB2DD2 /* LaunchScreen.storyboard in Resources */,
 				75A58D8E20A4D92D00CB2DD2 /* Assets.xcassets in Resources */,
+				75CD8BBF220D010500576659 /* pokemon_blue.gb in Resources */,
 				75A58D8C20A4D92D00CB2DD2 /* Main.storyboard in Resources */,
 				75706AFB213B139B005BBE4A /* cpu_instrs.gb in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		75CD8BC2220D072800576659 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -226,7 +293,23 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		75CD8BC0220D072800576659 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				75CD8BC7220D072800576659 /* GBTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		75CD8BCA220D072800576659 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 75A58D8220A4D92D00CB2DD2 /* GB */;
+			targetProxy = 75CD8BC9220D072800576659 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
 		75A58D8A20A4D92D00CB2DD2 /* Main.storyboard */ = {
@@ -393,6 +476,45 @@
 			};
 			name = Release;
 		};
+		75CD8BCC220D072800576659 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = Y7FVZ8LLL3;
+				INFOPLIST_FILE = GBTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = nathangelman.GBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GB.app/GB";
+			};
+			name = Debug;
+		};
+		75CD8BCD220D072800576659 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = Y7FVZ8LLL3;
+				INFOPLIST_FILE = GBTests/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = nathangelman.GBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 4.2;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/GB.app/GB";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -410,6 +532,15 @@
 			buildConfigurations = (
 				75A58D9620A4D92D00CB2DD2 /* Debug */,
 				75A58D9720A4D92D00CB2DD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		75CD8BCB220D072800576659 /* Build configuration list for PBXNativeTarget "GBTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				75CD8BCC220D072800576659 /* Debug */,
+				75CD8BCD220D072800576659 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
