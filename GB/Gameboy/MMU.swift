@@ -66,7 +66,6 @@ class MMU {
                 fallthrough
             case 0x7:
                 return bank1[index & 0x3FFF]
-                
             case 0x8:
                 fallthrough
             case 0x9:
